@@ -14,10 +14,10 @@ x-kong-config: &kong-env
   KONG_PG_PASSWORD: kong
 
 services:
-  # PostgreSQL database (Postgres 16 - latest stable)
+  # PostgreSQL database
   kong-database:
     container_name: kong-database
-    image: postgres:16-alpine
+    image: postgres:15
     restart: on-failure
     volumes:
       - kong_db_data:/var/lib/postgresql/data
