@@ -1,9 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import * as path from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.enableCors({
+    origin: '*',
+    credentials: true,
+  });
+
+  app.useStaticAssets(path.join(__dirname, '..', 'public'));
+
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -11,6 +21,9 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+
   await app.listen(process.env.PORT ?? 3000);
+  console.log(`✅ Sentinel Core running on http://localhost:${process.env.PORT ?? 3000}`);
 }
+
 bootstrap();
