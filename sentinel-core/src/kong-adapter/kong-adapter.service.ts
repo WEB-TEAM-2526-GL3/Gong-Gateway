@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common'
-import { HttpService } from '@nestjs/axios'
-import { firstValueFrom } from 'rxjs'
-import { KONG_ADMIN_URL } from './kong-adapter.constants'
+import { Injectable, Logger } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+import { KONG_ADMIN_URL } from './kong-adapter.constants';
 import type {
   KongService,
   KongRoute,
@@ -9,32 +9,32 @@ import type {
   KongApiKey,
   KongPlugin,
   KongNodeInfo,
-} from './kong-adapter.types'
+} from './kong-adapter.types';
 
 @Injectable()
 export class KongAdapterService {
-  private readonly logger = new Logger(KongAdapterService.name)
-  private readonly baseUrl = KONG_ADMIN_URL
+  private readonly logger = new Logger(KongAdapterService.name);
+  private readonly baseUrl = KONG_ADMIN_URL;
 
   constructor(private readonly http: HttpService) {}
 
   // ─── Setup ────────────────────────────────────────────────────────
 
   async init(): Promise<void> {
-    this.logger.log('Initializing Kong adapter...')
-    const existing = await this.listGlobalPlugins()
-    const hasKeyAuth = existing.some((p) => p.name === 'key-auth')
-    const hasPrometheus = existing.some((p) => p.name === 'prometheus')
+    this.logger.log('Initializing Kong adapter...');
+    const existing = await this.listGlobalPlugins();
+    const hasKeyAuth = existing.some((p) => p.name === 'key-auth');
+    const hasPrometheus = existing.some((p) => p.name === 'prometheus');
 
     if (!hasKeyAuth) {
-      this.logger.log('Enabling key-auth plugin globally...')
-      await this.createPlugin({ name: 'key-auth', config: {} })
+      this.logger.log('Enabling key-auth plugin globally...');
+      await this.createPlugin({ name: 'key-auth', config: {} });
     }
     if (!hasPrometheus) {
-      this.logger.log('Enabling prometheus plugin globally...')
-      await this.createPlugin({ name: 'prometheus', config: {} })
+      this.logger.log('Enabling prometheus plugin globally...');
+      await this.createPlugin({ name: 'prometheus', config: {} });
     }
-    this.logger.log('Kong adapter initialized')
+    this.logger.log('Kong adapter initialized');
   }
 
   // ─── Services ─────────────────────────────────────────────────────
@@ -42,34 +42,32 @@ export class KongAdapterService {
   async createService(name: string, url: string): Promise<KongService> {
     const { data } = await firstValueFrom(
       this.http.post<KongService>(`${this.baseUrl}/services`, { name, url }),
-    )
-    return data
+    );
+    return data;
   }
 
   async getService(name: string): Promise<KongService> {
     const { data } = await firstValueFrom(
       this.http.get<KongService>(`${this.baseUrl}/services/${name}`),
-    )
-    return data
+    );
+    return data;
   }
 
   async listServices(): Promise<KongService[]> {
     const { data } = await firstValueFrom(
       this.http.get<{ data: KongService[] }>(`${this.baseUrl}/services`),
-    )
-    return data.data
+    );
+    return data.data;
   }
 
   async deleteService(name: string): Promise<void> {
-    await firstValueFrom(
-      this.http.delete(`${this.baseUrl}/services/${name}`),
-    )
+    await firstValueFrom(this.http.delete(`${this.baseUrl}/services/${name}`));
   }
 
   async updateServiceUrl(name: string, newUrl: string): Promise<void> {
     await firstValueFrom(
       this.http.patch(`${this.baseUrl}/services/${name}`, { url: newUrl }),
-    )
+    );
   }
 
   // ─── Routes ───────────────────────────────────────────────────────
@@ -78,10 +76,10 @@ export class KongAdapterService {
     serviceName: string,
     paths: string[],
     options?: {
-      stripPath?: boolean
-      methods?: string[]
-      hosts?: string[]
-      name?: string
+      stripPath?: boolean;
+      methods?: string[];
+      hosts?: string[];
+      name?: string;
     },
   ): Promise<KongRoute> {
     const { data } = await firstValueFrom(
@@ -96,8 +94,8 @@ export class KongAdapterService {
           protocols: ['http', 'https'],
         },
       ),
-    )
-    return data
+    );
+    return data;
   }
 
   // ─── Auth ─────────────────────────────────────────────────────────
@@ -105,24 +103,27 @@ export class KongAdapterService {
   async createConsumer(username: string): Promise<KongConsumer> {
     const { data } = await firstValueFrom(
       this.http.post<KongConsumer>(`${this.baseUrl}/consumers`, { username }),
-    )
-    return data
+    );
+    return data;
   }
 
-  async createApiKey(consumerUsername: string, key?: string): Promise<KongApiKey> {
-    const body = key ? { key } : {}
+  async createApiKey(
+    consumerUsername: string,
+    key?: string,
+  ): Promise<KongApiKey> {
+    const body = key ? { key } : {};
     const { data } = await firstValueFrom(
       this.http.post<KongApiKey>(
         `${this.baseUrl}/consumers/${consumerUsername}/key-auth`,
         body,
       ),
-    )
-    return data
+    );
+    return data;
   }
 
   async enableKeyAuth(serviceName: string): Promise<void> {
-    const exists = await this.findPluginOnService(serviceName, 'key-auth')
-    if (exists) return
+    const exists = await this.findPluginOnService(serviceName, 'key-auth');
+    if (exists) return;
 
     await firstValueFrom(
       this.http.post(`${this.baseUrl}/plugins`, {
@@ -130,7 +131,7 @@ export class KongAdapterService {
         service: { name: serviceName },
         config: { key_names: ['apikey'] },
       }),
-    )
+    );
   }
 
   // ─── Health ───────────────────────────────────────────────────────
@@ -138,8 +139,8 @@ export class KongAdapterService {
   async ping(): Promise<KongNodeInfo> {
     const { data } = await firstValueFrom(
       this.http.get<KongNodeInfo>(`${this.baseUrl}/`),
-    )
-    return data
+    );
+    return data;
   }
 
   // ─── Internal ─────────────────────────────────────────────────────
@@ -150,10 +151,10 @@ export class KongAdapterService {
         this.http.get<{ data: KongPlugin[] }>(`${this.baseUrl}/plugins`, {
           params: { size: 100 },
         }),
-      )
-      return data.data.filter((p) => !p.service && !p.route && !p.consumer)
+      );
+      return data.data.filter((p) => !p.service && !p.route && !p.consumer);
     } catch {
-      return []
+      return [];
     }
   }
 
@@ -162,29 +163,29 @@ export class KongAdapterService {
     pluginName: string,
   ): Promise<KongPlugin | null> {
     try {
-      const service = await this.getService(serviceName)
+      const service = await this.getService(serviceName);
       const { data } = await firstValueFrom(
         this.http.get<{ data: KongPlugin[] }>(`${this.baseUrl}/plugins`, {
           params: { size: 100 },
         }),
-      )
+      );
       return (
         data.data.find(
           (p) => p.name === pluginName && p.service?.id === service.id,
         ) ?? null
-      )
+      );
     } catch {
-      return null
+      return null;
     }
   }
 
   private async createPlugin(config: {
-    name: string
-    config?: Record<string, unknown>
+    name: string;
+    config?: Record<string, unknown>;
   }): Promise<KongPlugin> {
     const { data } = await firstValueFrom(
       this.http.post<KongPlugin>(`${this.baseUrl}/plugins`, config),
-    )
-    return data
+    );
+    return data;
   }
 }
