@@ -1,0 +1,10 @@
+groups:
+  - name: kong_aggregated
+    interval: 1m
+    rules:
+      - record: kong:requests:rate5m
+        expr: rate(kong_http_requests_total[5m])
+      - record: kong:errors:rate5m
+        expr: rate(kong_http_status{code=~"[45].."}[5m])
+      - record: kong:latency:p95_5m
+        expr: histogram_quantile(0.95, rate(kong_upstream_latency_ms_bucket[5m]))
