@@ -263,3 +263,137 @@ DELETE {{sentinel}}/kong/services/{{groqService}}
 
 
 
+
+
+
+
+
+
+### ============================================================
+### AUTH VARIABLES
+### ============================================================
+
+@ceoSecret = change_this_ceo_secret
+
+@adminEmail = admin@sentinel.com
+@adminFullName = Sentinel Admin
+@adminPassword = admin123
+
+@secondAdminEmail = second.admin@sentinel.com
+@secondAdminFullName = Second Sentinel Admin
+@secondAdminPassword = admin456
+
+
+
+### ============================================================
+### AUTH TESTS
+### ============================================================
+
+### 0.1) Register first admin
+### Run this once. If the user already exists, skip this and run login.
+# @name registerMainAdmin
+POST {{sentinel}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "fullName": "{{adminFullName}}",
+  "password": "{{adminPassword}}",
+  "ceoSecret": "{{ceoSecret}}"
+}
+
+
+### 0.2) Login main admin
+# @name loginMainAdmin
+POST {{sentinel}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+
+### 0.3) Get current logged admin
+GET {{sentinel}}/auth/me
+Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
+
+
+### 0.4) Logout
+### This only tells the frontend/client to remove the JWT.
+POST {{sentinel}}/auth/logout
+Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
+
+
+### ============================================================
+### ADMIN CREATION / DELETE TESTS
+### ============================================================
+
+### 0.5) Create second admin
+# @name registerSecondAdmin
+POST {{sentinel}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{secondAdminEmail}}",
+  "fullName": "{{secondAdminFullName}}",
+  "password": "{{secondAdminPassword}}",
+  "ceoSecret": "{{ceoSecret}}"
+}
+
+
+### 0.6) Login second admin before deletion
+# @name loginSecondAdminBeforeDelete
+POST {{sentinel}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{secondAdminEmail}}",
+  "password": "{{secondAdminPassword}}"
+}
+
+
+### 0.7) Delete/deactivate second admin
+### Important: we use the MAIN ADMIN token, not the second admin token.
+DELETE {{sentinel}}/auth/admins/{{registerSecondAdmin.response.body.$.user.id}}
+Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "ceoSecret": "{{ceoSecret}}"
+}
+
+
+### 0.8) Try login second admin after deletion
+### Expected result: 401 Unauthorized because account is inactive.
+POST {{sentinel}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{secondAdminEmail}}",
+  "password": "{{secondAdminPassword}}"
+}
+
+
+### 0.9) Try register with wrong CEO secret
+### Expected result: 403 Forbidden.
+POST {{sentinel}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "fake.admin@sentinel.com",
+  "fullName": "Fake Admin",
+  "password": "fake1234",
+  "ceoSecret": "wrong-secret"
+}
+
+
+### 0.10) Try delete yourself
+### Expected result: 403 Forbidden.
+DELETE {{sentinel}}/auth/admins/{{loginMainAdmin.response.body.$.user.id}}
+Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "ceoSecret": "{{ceoSecret}}"
+}

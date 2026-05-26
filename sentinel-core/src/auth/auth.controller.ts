@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
+
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -34,7 +35,6 @@ export class AuthController {
 
   @Post('register')
   register(@Body() registerDto: RegisterDto) {
-    this.ceoSecretService.validateOrThrow(registerDto.ceoSecret);
     return this.authService.register(registerDto);
   }
 
@@ -59,10 +59,10 @@ export class AuthController {
   @Delete('admins/:id')
   async deleteAdmin(
     @Param('id') id: string,
-    @Body() deleteAdminDto: DeleteUserDto,
+    @Body() deleteUserDto: DeleteUserDto,
     @Req() request: AuthenticatedRequest,
   ) {
-    this.ceoSecretService.validateOrThrow(deleteAdminDto.ceoSecret);
+    this.ceoSecretService.validateOrThrow(deleteUserDto.ceoSecret);
 
     if (request.user.id === id) {
       throw new ForbiddenException('You cannot deactivate your own account');

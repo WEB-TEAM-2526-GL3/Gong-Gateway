@@ -5,9 +5,12 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+
 import { UsersService } from '../users/users.service';
 import { User } from '../users/domain/user';
+import { UserStatus } from '../users/domain/user-status.enum';
 import { DuplicateUserEmailError } from '../users/errors/duplicate-user-email.error';
+
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
@@ -48,6 +51,10 @@ export class AuthService {
 
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
+    }
+
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException('User account is inactive');
     }
 
     const passwordMatches = await bcrypt.compare(
