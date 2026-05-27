@@ -10,21 +10,21 @@ import {
   Body,
 } from '@nestjs/common';
 import { AxiosError } from 'axios';
-import { KongAdapterService } from '../kong-adapter/kong-adapter.service';
-import type {
+import { KongAdapterService } from './kong/kong-adapter.service';
+import {
   KongNodeInfo,
+  KongPlugin,
   KongRoute,
   KongService,
-} from '../kong-adapter/kong-adapter.types';
-import { CreateKongServiceDto } from './dto/create-kong-service.dto';
-import { UpdateKongServiceDto } from './dto/update-kong-service.dto';
-import { CreateKongRouteDto } from './dto/create-kong-route.dto';
-import { UpdateKongRouteDto } from './dto/update-kong-route.dto';
-import { CreateKongPluginDto } from './dto/create-kong-plugin.dto';
-import type { KongPlugin } from '../kong-adapter/kong-adapter.types';
+} from './kong/kong-adapter.types';
+import { CreateKongServiceDto } from './kong/dto/create-kong-service.dto';
+import { UpdateKongServiceDto } from './kong/dto/update-kong-service.dto';
+import { CreateKongRouteDto } from './kong/dto/create-kong-route.dto';
+import { UpdateKongRouteDto } from './kong/dto/update-kong-route.dto';
+import { CreateKongPluginDto } from './kong/dto/create-kong-plugin.dto';
 
 @Controller('kong')
-export class KongController {
+export class GatewayController {
   constructor(private readonly kongAdapter: KongAdapterService) {}
 
   @Get('health')

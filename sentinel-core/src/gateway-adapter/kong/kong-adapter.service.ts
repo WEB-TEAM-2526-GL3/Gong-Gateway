@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { KONG_ADMIN_URL } from './kong-adapter.constants';
 import type {
   KongService,
   KongRoute,
@@ -14,7 +13,7 @@ import type {
 @Injectable()
 export class KongAdapterService {
   private readonly logger = new Logger(KongAdapterService.name);
-  private readonly baseUrl = KONG_ADMIN_URL;
+  private readonly baseUrl = 'http://localhost:8001';
 
   constructor(private readonly http: HttpService) {}
 

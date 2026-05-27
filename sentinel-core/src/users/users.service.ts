@@ -1,49 +1,61 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { User } from './domain/user';
 import { UserStatus } from './domain/user-status.enum';
 import { CreateAdminUserInput } from './dto/create-admin-user.input';
-import { DuplicateUserEmailError } from './errors/duplicate-user-email.error';
-import type { UsersRepository } from './repositories/users.repository';
-import { USERS_REPOSITORY } from './users.constants';
+import { UserEntity } from './entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserRole } from './domain/user-role.enum';
+import { Repository } from 'typeorm';
+import { GenericService } from '../common/generic.service';
 
 @Injectable()
-export class UsersService {
+export class UsersService extends GenericService<UserEntity, string> {
   constructor(
-    @Inject(USERS_REPOSITORY)
-    private readonly usersRepository: UsersRepository,
-  ) {}
+    @InjectRepository(UserEntity)
+    private readonly userOrmRepository: Repository<UserEntity>,
+  ) {
+    super(userOrmRepository);
+  }
 
-  async createAdminUser(input: CreateAdminUserInput): Promise<User> {
-    const existingUser = await this.usersRepository.existsByEmail(input.email);
-
-    if (existingUser) {
-      throw new DuplicateUserEmailError(input.email.trim().toLowerCase());
-    }
-
-    const user = User.createAdmin({
-      id: randomUUID(),
+  async createAdminUser(input: CreateAdminUserInput): Promise<UserEntity> {
+    const existingUser = await this.genericRepository.existsBy({
       email: input.email,
-      fullName: input.fullName,
-      passwordHash: input.passwordHash,
     });
 
-    return this.usersRepository.create(user);
+    if (existingUser) {
+      throw new Error(input.email.trim().toLowerCase() + ' is already in use');
+    }
+
+    const user = this.genericRepository.create({
+      id: randomUUID(),
+      role: UserRole.ADMIN,
+      status: UserStatus.ACTIVE,
+      ...input,
+    });
+
+    return this.genericRepository.save(user);
   }
 
-  async getUserById(id: string): Promise<User | null> {
-    return this.usersRepository.findById(id);
+  async updateStatus(
+    id: string,
+    status: UserStatus,
+  ): Promise<UserEntity | null> {
+    const entity = await this.genericRepository.findOneBy({ id });
+
+    if (!entity) {
+      return null;
+    }
+
+    entity.status = status;
+
+    return this.genericRepository.save(entity);
   }
 
-  async getUserByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findByEmail(email);
+  async deactivateUser(id: string): Promise<UserEntity | null> {
+    return this.updateStatus(id, UserStatus.INACTIVE);
   }
 
-  async deactivateUser(id: string): Promise<User | null> {
-    return this.usersRepository.updateStatus(id, UserStatus.INACTIVE);
-  }
-
-  async reactivateUser(id: string): Promise<User | null> {
-    return this.usersRepository.updateStatus(id, UserStatus.ACTIVE);
+  async reactivateUser(id: string): Promise<UserEntity | null> {
+    return this.updateStatus(id, UserStatus.ACTIVE);
   }
 }

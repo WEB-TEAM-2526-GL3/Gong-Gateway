@@ -4,9 +4,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { KongModule } from './kong/kong.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { GatewayAdapterModule } from './gateway-adapter/gateway-adapter.module';
 
 @Module({
   imports: [
@@ -30,7 +30,7 @@ import { AuthModule } from './auth/auth.module';
 
     UsersModule,
     AuthModule,
-    KongModule,
+    GatewayAdapterModule,
   ],
   controllers: [AppController],
   providers: [AppService],

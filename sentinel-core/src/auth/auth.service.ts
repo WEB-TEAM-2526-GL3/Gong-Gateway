@@ -7,14 +7,13 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { UsersService } from '../users/users.service';
-import { User } from '../users/domain/user';
 import { UserStatus } from '../users/domain/user-status.enum';
-import { DuplicateUserEmailError } from '../users/errors/duplicate-user-email.error';
 
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { CeoSecretService } from './ceo-secret.service';
+import { UserEntity } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -38,7 +37,7 @@ export class AuthService {
 
       return this.buildAuthResponse(user);
     } catch (error) {
-      if (error instanceof DuplicateUserEmailError) {
+      if (error instanceof ConflictException) {
         throw new ConflictException(error.message);
       }
 
@@ -47,7 +46,7 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.usersService.getUserByEmail(loginDto.email);
+    const user = await this.usersService.findOneBy({ email: loginDto.email });
 
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
@@ -75,7 +74,7 @@ export class AuthService {
     };
   }
 
-  private async buildAuthResponse(user: User) {
+  private async buildAuthResponse(user: UserEntity) {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
