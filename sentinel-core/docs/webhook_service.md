@@ -69,11 +69,12 @@ webhooks continuent d'etre traites.
 
 ## Providers
 
-La V1 supporte deux providers :
+La V1 supporte trois providers :
 
 ```text
 GENERIC
 DISCORD
+SLACK
 ```
 
 `GENERIC` est le provider par defaut. Les payloads existants qui ne precisent
@@ -173,6 +174,80 @@ La generation du resume Discord prend, par ordre de priorite :
 
 L'URL Discord Webhook doit etre traitee comme un secret operationnel : ne pas la
 publier dans les logs, tickets publics ou commits.
+
+## Slack Provider
+
+Slack Incoming Webhooks requiert un payload compatible Slack avec `text` et
+`blocks`. L'Incoming Webhook Slack determine deja le channel cible : ne pas
+envoyer `channel`, `username` ou `icon_emoji` dans cette V1.
+
+`GENERIC` reste le provider par defaut, webhook.site continue de fonctionner
+avec `provider: "GENERIC"` ou sans champ `provider`, et `DISCORD` reste
+inchangé.
+
+Create Slack webhook config :
+
+```json
+{
+  "name": "Slack Sentinel Alerts",
+  "provider": "SLACK",
+  "url": "https://hooks.slack.com/services/xxx/yyy/zzz",
+  "eventTypes": ["INCIDENT_CREATED", "FALLBACK_ACTIVATED", "BUDGET_WARNING"],
+  "isActive": true,
+  "maxRetries": 3
+}
+```
+
+Emit example :
+
+```json
+{
+  "eventType": "INCIDENT_CREATED",
+  "source": "IncidentModule",
+  "payload": {
+    "incidentId": "inc_001",
+    "reason": "OpenAI timeout",
+    "status": "OPEN"
+  }
+}
+```
+
+Generated Slack payload :
+
+```json
+{
+  "text": "[INCIDENT_CREATED] OpenAI timeout",
+  "blocks": [
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*INCIDENT_CREATED*\\nOpenAI timeout"
+      }
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "Source: IncidentModule"
+        }
+      ]
+    }
+  ]
+}
+```
+
+La generation du resume Slack prend, par ordre de priorite :
+
+1. `payload.reason`
+2. `payload.message`
+3. `payload.error`
+4. `payload.status + " - " + payload.serviceName`
+5. `JSON.stringify(payload).slice(0, 300)`
+
+L'URL Slack Incoming Webhook doit etre gardee secrete : elle donne le droit de
+poster dans le channel configure.
 
 ## Exemples D'Integration
 

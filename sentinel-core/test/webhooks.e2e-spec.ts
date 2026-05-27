@@ -452,6 +452,143 @@ describe('WebhooksController (e2e)', () => {
     }
   });
 
+  it('POST /webhooks creates a Slack webhook config', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/webhooks')
+      .send({
+        name: 'Slack Sentinel Alerts',
+        provider: 'SLACK',
+        url: 'https://hooks.slack.com/services/test/test/test',
+        eventTypes: ['INCIDENT_CREATED'],
+        isActive: true,
+        maxRetries: 1,
+      })
+      .expect(201);
+
+    const body = response.body as WebhookResponseBody;
+
+    expect(body).toMatchObject({
+      id: 'wh_001',
+      name: 'Slack Sentinel Alerts',
+      provider: 'SLACK',
+      url: 'https://hooks.slack.com/services/test/test/test',
+      eventTypes: ['INCIDENT_CREATED'],
+      isActive: true,
+      hasSecret: false,
+      maxRetries: 1,
+    });
+    expect(body.secret).toBeUndefined();
+  });
+
+  it('GET /webhooks returns provider SLACK for Slack webhooks', async () => {
+    await request(app.getHttpServer())
+      .post('/webhooks')
+      .send({
+        name: 'Slack Sentinel Alerts',
+        provider: 'SLACK',
+        url: 'https://hooks.slack.com/services/test/test/test',
+        eventTypes: ['BUDGET_WARNING'],
+      })
+      .expect(201);
+
+    const response = await request(app.getHttpServer())
+      .get('/webhooks?eventType=BUDGET_WARNING')
+      .expect(200);
+
+    const body = response.body as ListResponseBody<WebhookResponseBody>;
+
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0]).toMatchObject({
+      name: 'Slack Sentinel Alerts',
+      provider: 'SLACK',
+      eventTypes: ['BUDGET_WARNING'],
+    });
+    expect(body.data[0].secret).toBeUndefined();
+  });
+
+  it('SLACK provider formats emitted payloads with text and blocks', async () => {
+    const receiver = await createTestWebhookReceiver();
+
+    try {
+      await request(app.getHttpServer())
+        .post('/webhooks')
+        .send({
+          name: 'Slack Sentinel Alerts',
+          provider: 'SLACK',
+          url: receiver.url,
+          eventTypes: ['INCIDENT_CREATED'],
+          isActive: true,
+          maxRetries: 0,
+        })
+        .expect(201);
+
+      const response = await request(app.getHttpServer())
+        .post('/webhooks/emit')
+        .send({
+          eventType: 'INCIDENT_CREATED',
+          source: 'IncidentModule',
+          payload: {
+            incidentId: 'inc_001',
+            reason: 'OpenAI timeout',
+            status: 'OPEN',
+          },
+        })
+        .expect(200);
+
+      const body = response.body as EmitResponseBody;
+
+      expect(body.matchedWebhooks).toBe(1);
+      expect(body.deliveries[0]).toMatchObject({
+        webhookId: 'wh_001',
+        status: 'SUCCESS',
+        attemptCount: 1,
+      });
+      expect(receiver.requests).toHaveLength(1);
+
+      const outgoingPayload = JSON.parse(receiver.requests[0].body) as Record<
+        string,
+        unknown
+      >;
+
+      expect(outgoingPayload).toMatchObject({
+        text: '[INCIDENT_CREATED] OpenAI timeout',
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: '*INCIDENT_CREATED*\nOpenAI timeout',
+            },
+          },
+          {
+            type: 'context',
+            elements: [
+              {
+                type: 'mrkdwn',
+                text: 'Source: IncidentModule',
+              },
+            ],
+          },
+        ],
+      });
+      expect(outgoingPayload.event).toBeUndefined();
+      expect(outgoingPayload.embeds).toBeUndefined();
+    } finally {
+      await receiver.close();
+    }
+  });
+
+  it('SLACK provider rejects missing url', async () => {
+    await request(app.getHttpServer())
+      .post('/webhooks')
+      .send({
+        name: 'Slack Missing Url',
+        provider: 'SLACK',
+        eventTypes: ['INCIDENT_CREATED'],
+      })
+      .expect(400);
+  });
+
   it('POST /webhooks/emit delivers only to active matching webhooks', async () => {
     const receiver = await createTestWebhookReceiver();
 
