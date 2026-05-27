@@ -46,4 +46,8 @@ export class UsersService {
   async reactivateUser(id: string): Promise<User | null> {
     return this.usersRepository.updateStatus(id, UserStatus.ACTIVE);
   }
+
+  async getAllUsers(): Promise<User[]> {
+    return this.usersRepository.findAll();
+  }
 }

@@ -19,6 +19,14 @@ export class TypeOrmUsersRepository implements UsersRepository {
     return this.toDomain(saved);
   }
 
+  async findAll(): Promise<User[]> {
+    const entities = await this.repository.find({
+      order: { createdAt: 'DESC' },
+    });
+
+    return entities.map((entity) => this.toDomain(entity));
+  }
+
   async findById(id: string): Promise<User | null> {
     const entity = await this.repository.findOne({ where: { id } });
     return entity ? this.toDomain(entity) : null;

@@ -7,6 +7,9 @@ import { AppService } from './app.service';
 import { KongModule } from './kong/kong.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+
+import { FrontendModule } from './frontend/frontend.module';
 
 @Module({
   imports: [
@@ -30,7 +33,9 @@ import { AuthModule } from './auth/auth.module';
 
     UsersModule,
     AuthModule,
+    DashboardModule,
     KongModule,
+    FrontendModule,
   ],
   controllers: [AppController],
   providers: [AppService],

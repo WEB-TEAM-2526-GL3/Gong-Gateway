@@ -3,6 +3,7 @@ import { UserStatus } from '../domain/user-status.enum';
 
 export interface UsersRepository {
   create(user: User): Promise<User>;
+  findAll(): Promise<User[]>;
   findById(id: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
   existsByEmail(email: string): Promise<boolean>;
