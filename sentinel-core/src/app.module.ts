@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { GatewayAdapterModule } from './gateway-adapter/gateway-adapter.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     AuthModule,
     GatewayAdapterModule,
     DashboardModule,
+    MonitoringModule,
   ],
   controllers: [AppController],
   providers: [AppService],
