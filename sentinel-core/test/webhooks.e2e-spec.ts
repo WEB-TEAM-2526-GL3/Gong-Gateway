@@ -13,6 +13,7 @@ import { AppModule } from './../src/app.module';
 interface WebhookResponseBody {
   id: string;
   name: string;
+  provider: string;
   url: string;
   eventTypes: string[];
   isActive: boolean;
@@ -103,6 +104,7 @@ describe('WebhooksController (e2e)', () => {
     expect(body).toMatchObject({
       id: 'wh_001',
       name: 'Slack Incidents',
+      provider: 'GENERIC',
       url: 'https://hooks.slack.com/services/xxx',
       eventTypes: ['INCIDENT_CREATED', 'INCIDENT_RESOLVED'],
       isActive: true,
@@ -170,6 +172,7 @@ describe('WebhooksController (e2e)', () => {
     expect(body.data[0]).toMatchObject({
       id: 'wh_001',
       name: 'Budget Alerts',
+      provider: 'GENERIC',
       eventTypes: ['BUDGET_WARNING'],
       isActive: true,
       hasSecret: false,
@@ -293,6 +296,157 @@ describe('WebhooksController (e2e)', () => {
         source: 'WebhookService',
         data: { message: 'hello' },
       });
+    } finally {
+      await receiver.close();
+    }
+  });
+
+  it('GENERIC provider keeps the webhook.site-compatible payload format', async () => {
+    const receiver = await createTestWebhookReceiver();
+
+    try {
+      await request(app.getHttpServer())
+        .post('/webhooks')
+        .send({
+          name: 'Generic Webhook',
+          provider: 'GENERIC',
+          url: receiver.url,
+          eventTypes: ['INCIDENT_CREATED'],
+          maxRetries: 0,
+        })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .post('/webhooks/emit')
+        .send({
+          eventType: 'INCIDENT_CREATED',
+          source: 'IncidentModule',
+          payload: {
+            incidentId: 'inc_001',
+            reason: 'OpenAI timeout',
+            status: 'OPEN',
+          },
+        })
+        .expect(200);
+
+      expect(receiver.requests).toHaveLength(1);
+      const outgoingPayload = JSON.parse(receiver.requests[0].body) as Record<
+        string,
+        unknown
+      >;
+
+      expect(outgoingPayload).toMatchObject({
+        event: 'INCIDENT_CREATED',
+        source: 'IncidentModule',
+        data: {
+          incidentId: 'inc_001',
+          reason: 'OpenAI timeout',
+          status: 'OPEN',
+        },
+      });
+      expect(outgoingPayload.timestamp).toEqual(expect.any(String));
+      expect(outgoingPayload.content).toBeUndefined();
+      expect(outgoingPayload.embeds).toBeUndefined();
+    } finally {
+      await receiver.close();
+    }
+  });
+
+  it('POST /webhooks creates a Discord webhook config', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/webhooks')
+      .send({
+        name: 'Discord Sentinel Alerts',
+        provider: 'DISCORD',
+        url: 'https://discord.com/api/webhooks/test/token',
+        eventTypes: ['INCIDENT_CREATED'],
+        isActive: true,
+        maxRetries: 1,
+      })
+      .expect(201);
+
+    const body = response.body as WebhookResponseBody;
+
+    expect(body).toMatchObject({
+      id: 'wh_001',
+      name: 'Discord Sentinel Alerts',
+      provider: 'DISCORD',
+      url: 'https://discord.com/api/webhooks/test/token',
+      eventTypes: ['INCIDENT_CREATED'],
+      isActive: true,
+      hasSecret: false,
+      maxRetries: 1,
+    });
+    expect(body.secret).toBeUndefined();
+  });
+
+  it('DISCORD provider formats emitted payloads with content and embeds', async () => {
+    const receiver = await createTestWebhookReceiver();
+
+    try {
+      await request(app.getHttpServer())
+        .post('/webhooks')
+        .send({
+          name: 'Discord Sentinel Alerts',
+          provider: 'DISCORD',
+          url: receiver.url,
+          eventTypes: ['INCIDENT_CREATED'],
+          isActive: true,
+          maxRetries: 0,
+        })
+        .expect(201);
+
+      const response = await request(app.getHttpServer())
+        .post('/webhooks/emit')
+        .send({
+          eventType: 'INCIDENT_CREATED',
+          source: 'IncidentModule',
+          payload: {
+            incidentId: 'inc_001',
+            reason: 'OpenAI timeout',
+            status: 'OPEN',
+          },
+        })
+        .expect(200);
+
+      const body = response.body as EmitResponseBody;
+
+      expect(body.matchedWebhooks).toBe(1);
+      expect(body.deliveries[0]).toMatchObject({
+        webhookId: 'wh_001',
+        status: 'SUCCESS',
+        attemptCount: 1,
+      });
+      expect(receiver.requests).toHaveLength(1);
+
+      const outgoingPayload = JSON.parse(receiver.requests[0].body) as Record<
+        string,
+        unknown
+      >;
+
+      expect(outgoingPayload).toMatchObject({
+        content: '[INCIDENT_CREATED] OpenAI timeout',
+        embeds: [
+          {
+            title: 'INCIDENT_CREATED',
+            description: 'OpenAI timeout',
+            fields: [
+              {
+                name: 'Source',
+                value: 'IncidentModule',
+                inline: true,
+              },
+              {
+                name: 'Status',
+                value: 'OPEN',
+                inline: true,
+              },
+            ],
+          },
+        ],
+      });
+      expect(outgoingPayload.event).toBeUndefined();
+      expect(outgoingPayload.data).toBeUndefined();
     } finally {
       await receiver.close();
     }

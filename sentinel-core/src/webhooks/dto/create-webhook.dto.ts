@@ -12,10 +12,15 @@ import {
   Min,
 } from 'class-validator';
 import { WebhookEventType } from '../types/webhook-event-type.enum';
+import { WebhookProvider } from '../types/webhook-provider.enum';
 
 export class CreateWebhookDto {
   @IsString()
   name!: string;
+
+  @IsOptional()
+  @IsEnum(WebhookProvider)
+  provider?: WebhookProvider;
 
   @IsUrl({
     protocols: ['http', 'https'],

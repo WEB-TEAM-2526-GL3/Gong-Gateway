@@ -13,9 +13,11 @@ import { ListDeliveriesQueryDto } from './dto/list-deliveries-query.dto';
 import { ListWebhooksQueryDto } from './dto/list-webhooks-query.dto';
 import { TestWebhookDto } from './dto/test-webhook.dto';
 import { UpdateWebhookDto } from './dto/update-webhook.dto';
+import { WebhookPayloadFormatterFactory } from './formatters/webhook-payload-formatter.factory';
 import { WebhookDeliveryStatus } from './types/webhook-delivery-status.enum';
 import { WebhookDelivery } from './types/webhook-delivery.model';
 import { WebhookEventType } from './types/webhook-event-type.enum';
+import { WebhookProvider } from './types/webhook-provider.enum';
 import { PublicWebhook, Webhook } from './types/webhook.model';
 import { WebhooksRepository } from './webhooks.repository';
 
@@ -32,18 +34,12 @@ export interface EmitResult {
   deliveries: DeliverySummary[];
 }
 
-interface OutgoingWebhookPayload {
-  event: WebhookEventType;
-  source?: string;
-  timestamp: string;
-  data: Record<string, unknown>;
-}
-
 @Injectable()
 export class WebhooksService {
   constructor(
     private readonly repository: WebhooksRepository,
     private readonly http: HttpService,
+    private readonly formatterFactory: WebhookPayloadFormatterFactory,
   ) {}
 
   createWebhook(body: CreateWebhookDto): PublicWebhook {
@@ -51,6 +47,7 @@ export class WebhooksService {
 
     const webhook = this.repository.createWebhook({
       name: body.name,
+      provider: body.provider ?? WebhookProvider.GENERIC,
       url: body.url,
       eventTypes: body.eventTypes,
       isActive: body.isActive ?? true,
@@ -85,6 +82,7 @@ export class WebhooksService {
 
     const webhook = this.repository.updateWebhook(id, {
       name: body.name,
+      provider: body.provider,
       url: body.url,
       eventTypes: body.eventTypes,
       isActive: body.isActive,
@@ -167,12 +165,9 @@ export class WebhooksService {
     payload: Record<string, unknown>,
   ): Promise<WebhookDelivery> {
     const createdAt = new Date();
-    const outgoingPayload: OutgoingWebhookPayload = {
-      event: eventType,
-      source,
-      timestamp: createdAt.toISOString(),
-      data: payload,
-    };
+    const outgoingPayload = this.formatterFactory
+      .getFormatter(webhook.provider)
+      .format({ eventType, source, payload });
     const body = JSON.stringify(outgoingPayload);
     const maxAttempts = Math.max(1, webhook.maxRetries + 1);
 
@@ -287,6 +282,7 @@ export class WebhooksService {
     return {
       id: webhook.id,
       name: webhook.name,
+      provider: webhook.provider,
       url: webhook.url,
       eventTypes: [...webhook.eventTypes],
       isActive: webhook.isActive,

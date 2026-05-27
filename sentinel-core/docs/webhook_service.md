@@ -67,9 +67,21 @@ Si un webhook externe echoue, `/webhooks/emit` ne leve pas une erreur globale.
 La reponse contient une delivery `FAILED` pour ce webhook, et les autres
 webhooks continuent d'etre traites.
 
-## Payload Sortant
+## Providers
 
-Pour chaque webhook cible, Sentinel envoie :
+La V1 supporte deux providers :
+
+```text
+GENERIC
+DISCORD
+```
+
+`GENERIC` est le provider par defaut. Les payloads existants qui ne precisent
+pas `provider` continuent donc de fonctionner, notamment avec webhook.site.
+
+## Payload Sortant GENERIC
+
+Pour chaque webhook `GENERIC`, Sentinel envoie :
 
 ```json
 {
@@ -91,6 +103,76 @@ Content-Type: application/json
 X-Sentinel-Event: INCIDENT_CREATED
 X-Sentinel-Signature: sha256=<hmac>   # seulement si un secret est configure
 ```
+
+## Discord Provider
+
+Discord requiert un payload specifique compatible avec Discord Webhook.
+`GENERIC` reste le provider par defaut, et les tests webhook.site continuent de
+fonctionner avec `provider: "GENERIC"` ou sans champ `provider`.
+
+Create Discord webhook config :
+
+```json
+{
+  "name": "Discord Sentinel Alerts",
+  "provider": "DISCORD",
+  "url": "https://discord.com/api/webhooks/xxx/yyy",
+  "eventTypes": ["INCIDENT_CREATED", "FALLBACK_ACTIVATED", "BUDGET_WARNING"],
+  "isActive": true,
+  "maxRetries": 3
+}
+```
+
+Emit example :
+
+```json
+{
+  "eventType": "INCIDENT_CREATED",
+  "source": "IncidentModule",
+  "payload": {
+    "incidentId": "inc_001",
+    "reason": "OpenAI timeout",
+    "status": "OPEN"
+  }
+}
+```
+
+Generated Discord payload :
+
+```json
+{
+  "content": "[INCIDENT_CREATED] OpenAI timeout",
+  "embeds": [
+    {
+      "title": "INCIDENT_CREATED",
+      "description": "OpenAI timeout",
+      "fields": [
+        {
+          "name": "Source",
+          "value": "IncidentModule",
+          "inline": true
+        },
+        {
+          "name": "Status",
+          "value": "OPEN",
+          "inline": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+La generation du resume Discord prend, par ordre de priorite :
+
+1. `payload.reason`
+2. `payload.message`
+3. `payload.error`
+4. `payload.status + payload.serviceName`
+5. `JSON.stringify(payload).slice(0, 300)`
+
+L'URL Discord Webhook doit etre traitee comme un secret operationnel : ne pas la
+publier dans les logs, tickets publics ou commits.
 
 ## Exemples D'Integration
 
@@ -211,6 +293,7 @@ Request :
 ```json
 {
   "name": "Slack Incidents",
+  "provider": "GENERIC",
   "url": "https://hooks.slack.com/services/xxx",
   "eventTypes": ["INCIDENT_CREATED", "INCIDENT_RESOLVED"],
   "isActive": true,
@@ -225,6 +308,7 @@ Response publique :
 {
   "id": "wh_001",
   "name": "Slack Incidents",
+  "provider": "GENERIC",
   "url": "https://hooks.slack.com/services/xxx",
   "eventTypes": ["INCIDENT_CREATED", "INCIDENT_RESOLVED"],
   "isActive": true,
@@ -254,6 +338,7 @@ Response :
     {
       "id": "wh_001",
       "name": "Slack Incidents",
+      "provider": "GENERIC",
       "url": "https://hooks.slack.com/services/xxx",
       "eventTypes": ["INCIDENT_CREATED"],
       "isActive": true,

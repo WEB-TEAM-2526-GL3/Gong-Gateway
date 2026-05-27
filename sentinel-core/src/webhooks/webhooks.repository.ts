@@ -2,10 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { WebhookDeliveryStatus } from './types/webhook-delivery-status.enum';
 import { WebhookDelivery } from './types/webhook-delivery.model';
 import { WebhookEventType } from './types/webhook-event-type.enum';
+import { WebhookProvider } from './types/webhook-provider.enum';
 import { Webhook } from './types/webhook.model';
 
 interface CreateWebhookRecord {
   name: string;
+  provider: WebhookProvider;
   url: string;
   eventTypes: WebhookEventType[];
   isActive: boolean;
@@ -15,6 +17,7 @@ interface CreateWebhookRecord {
 
 interface UpdateWebhookRecord {
   name?: string;
+  provider?: WebhookProvider;
   url?: string;
   eventTypes?: WebhookEventType[];
   isActive?: boolean;
@@ -45,6 +48,7 @@ export class WebhooksRepository {
     const webhook: Webhook = {
       id: this.nextWebhookId(),
       name: input.name,
+      provider: input.provider,
       url: input.url,
       eventTypes: [...input.eventTypes],
       isActive: input.isActive,
@@ -85,6 +89,7 @@ export class WebhooksRepository {
     const updated: Webhook = {
       ...webhook,
       name: updates.name ?? webhook.name,
+      provider: updates.provider ?? webhook.provider,
       url: updates.url ?? webhook.url,
       eventTypes: updates.eventTypes
         ? [...updates.eventTypes]
