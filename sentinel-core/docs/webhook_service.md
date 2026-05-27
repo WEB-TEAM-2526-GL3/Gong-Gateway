@@ -249,6 +249,17 @@ La generation du resume Slack prend, par ordre de priorite :
 L'URL Slack Incoming Webhook doit etre gardee secrete : elle donne le droit de
 poster dans le channel configure.
 
+Les reponses publiques de l'API ne renvoient pas l'URL Slack brute. Sentinel
+garde l'URL complete en memoire pour envoyer les notifications, mais retourne
+une valeur masquee :
+
+```json
+{
+  "provider": "SLACK",
+  "url": "https://hooks.slack.com/services/***"
+}
+```
+
 ## Exemples D'Integration
 
 ### IncidentModule
@@ -356,11 +367,24 @@ Response :
 Les routes statiques `/webhooks/event-types` et `/webhooks/emit` sont declarees
 avant les routes dynamiques `/:id` pour eviter toute capture incorrecte.
 
+Les endpoints de gestion admin sont proteges en V1 par une cle temporaire dans
+le header :
+
+```http
+X-Sentinel-Admin-Key: <WEBHOOK_ADMIN_KEY>
+```
+
+La valeur attendue vient de la variable d'environnement `WEBHOOK_ADMIN_KEY`.
+Cette protection est volontairement simple pour la V1. Elle ne remplace pas un
+futur `AuthModule` avec JWT/roles. L'endpoint `POST /webhooks/emit` reste le
+contrat interne pour les modules producteurs.
+
 ## Creer Un Webhook
 
 ```http
 POST /webhooks
 Content-Type: application/json
+X-Sentinel-Admin-Key: <WEBHOOK_ADMIN_KEY>
 ```
 
 Request :
@@ -384,7 +408,7 @@ Response publique :
   "id": "wh_001",
   "name": "Slack Incidents",
   "provider": "GENERIC",
-  "url": "https://hooks.slack.com/services/xxx",
+  "url": "https://hooks.slack.com/services/***",
   "eventTypes": ["INCIDENT_CREATED", "INCIDENT_RESOLVED"],
   "isActive": true,
   "hasSecret": true,
@@ -403,6 +427,7 @@ uniquement `hasSecret`.
 GET /webhooks
 GET /webhooks?isActive=true
 GET /webhooks?eventType=INCIDENT_CREATED
+X-Sentinel-Admin-Key: <WEBHOOK_ADMIN_KEY>
 ```
 
 Response :
@@ -414,7 +439,7 @@ Response :
       "id": "wh_001",
       "name": "Slack Incidents",
       "provider": "GENERIC",
-      "url": "https://hooks.slack.com/services/xxx",
+      "url": "https://hooks.slack.com/services/***",
       "eventTypes": ["INCIDENT_CREATED"],
       "isActive": true,
       "hasSecret": true,
@@ -431,6 +456,7 @@ Response :
 ```http
 PATCH /webhooks/wh_001
 Content-Type: application/json
+X-Sentinel-Admin-Key: <WEBHOOK_ADMIN_KEY>
 ```
 
 ```json
@@ -448,6 +474,7 @@ une desactivation logique en mettant `isActive = false`.
 ```http
 POST /webhooks/wh_001/test
 Content-Type: application/json
+X-Sentinel-Admin-Key: <WEBHOOK_ADMIN_KEY>
 ```
 
 ```json
@@ -490,6 +517,7 @@ GET /webhook-deliveries
 GET /webhook-deliveries?status=FAILED
 GET /webhook-deliveries?eventType=INCIDENT_CREATED
 GET /webhook-deliveries?webhookId=wh_001
+X-Sentinel-Admin-Key: <WEBHOOK_ADMIN_KEY>
 ```
 
 Statuts possibles :
@@ -537,8 +565,8 @@ version pourra deleguer les retries a une queue.
 - Donnees perdues au redemarrage du backend.
 - Pas encore de DB applicative.
 - Pas encore d'ORM TypeORM/Prisma.
-- Pas encore d'AuthModule/JWT.
-- Endpoints admin publics tant que l'auth globale n'existe pas.
+- Pas encore d'AuthModule/JWT complet avec utilisateurs et roles.
+- Endpoints admin proteges provisoirement par `X-Sentinel-Admin-Key`.
 - Pas encore d'EventBus.
 - Pas encore de queue asynchrone pour les retries.
 - Pas encore d'integration directe avec `IncidentModule`, `AdminModule` ou

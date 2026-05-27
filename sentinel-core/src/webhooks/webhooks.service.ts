@@ -283,7 +283,7 @@ export class WebhooksService {
       id: webhook.id,
       name: webhook.name,
       provider: webhook.provider,
-      url: webhook.url,
+      url: this.toPublicWebhookUrl(webhook),
       eventTypes: [...webhook.eventTypes],
       isActive: webhook.isActive,
       hasSecret: Boolean(webhook.secret),
@@ -300,6 +300,43 @@ export class WebhooksService {
       status: delivery.status,
       attemptCount: delivery.attemptCount,
     };
+  }
+
+  private toPublicWebhookUrl(webhook: Webhook): string {
+    if (this.isSensitiveWebhookUrl(webhook)) {
+      return this.maskSensitiveUrl(webhook.url);
+    }
+
+    return webhook.url;
+  }
+
+  private isSensitiveWebhookUrl(webhook: Webhook): boolean {
+    if (webhook.provider === WebhookProvider.SLACK) {
+      return true;
+    }
+
+    try {
+      return new URL(webhook.url).hostname === 'hooks.slack.com';
+    } catch {
+      return false;
+    }
+  }
+
+  private maskSensitiveUrl(url: string): string {
+    try {
+      const parsedUrl = new URL(url);
+
+      if (
+        parsedUrl.hostname === 'hooks.slack.com' &&
+        parsedUrl.pathname.startsWith('/services/')
+      ) {
+        return `${parsedUrl.origin}/services/***`;
+      }
+
+      return `${parsedUrl.origin}/***`;
+    } catch {
+      return '***';
+    }
   }
 
   private serializeResponseBody(value: unknown): string | undefined {

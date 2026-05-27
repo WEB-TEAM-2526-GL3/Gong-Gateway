@@ -1,6 +1,7 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { WebhookPayloadFormatterFactory } from './formatters/webhook-payload-formatter.factory';
+import { WebhookAdminGuard } from './guards/webhook-admin.guard';
 import { WebhookDeliveriesController } from './webhook-deliveries.controller';
 import { WebhooksController } from './webhooks.controller';
 import { WebhooksRepository } from './webhooks.repository';
@@ -13,6 +14,7 @@ import { WebhooksService } from './webhooks.service';
     WebhooksService,
     WebhooksRepository,
     WebhookPayloadFormatterFactory,
+    WebhookAdminGuard,
   ],
   exports: [WebhooksService],
 })

@@ -63,10 +63,17 @@ interface TestWebhookReceiver {
   close: () => Promise<void>;
 }
 
+const WEBHOOK_ADMIN_KEY = 'test-webhook-admin-key';
+const ADMIN_HEADERS = { 'X-Sentinel-Admin-Key': WEBHOOK_ADMIN_KEY };
+
 describe('WebhooksController (e2e)', () => {
   let app: INestApplication<App>;
+  let previousWebhookAdminKey: string | undefined;
 
   beforeEach(async () => {
+    previousWebhookAdminKey = process.env.WEBHOOK_ADMIN_KEY;
+    process.env.WEBHOOK_ADMIN_KEY = WEBHOOK_ADMIN_KEY;
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -84,11 +91,23 @@ describe('WebhooksController (e2e)', () => {
 
   afterEach(async () => {
     await app.close();
+
+    if (previousWebhookAdminKey === undefined) {
+      delete process.env.WEBHOOK_ADMIN_KEY;
+      return;
+    }
+
+    process.env.WEBHOOK_ADMIN_KEY = previousWebhookAdminKey;
+  });
+
+  it('rejects admin endpoints without the admin key', async () => {
+    await request(app.getHttpServer()).get('/webhooks').expect(401);
   });
 
   it('POST /webhooks creates a webhook without exposing the secret', async () => {
     const response = await request(app.getHttpServer())
       .post('/webhooks')
+      .set(ADMIN_HEADERS)
       .send({
         name: 'Slack Incidents',
         url: 'https://hooks.slack.com/services/xxx',
@@ -105,7 +124,7 @@ describe('WebhooksController (e2e)', () => {
       id: 'wh_001',
       name: 'Slack Incidents',
       provider: 'GENERIC',
-      url: 'https://hooks.slack.com/services/xxx',
+      url: 'https://hooks.slack.com/services/***',
       eventTypes: ['INCIDENT_CREATED', 'INCIDENT_RESOLVED'],
       isActive: true,
       hasSecret: true,
@@ -117,6 +136,7 @@ describe('WebhooksController (e2e)', () => {
   it('never exposes secret on create, list, get, or patch responses', async () => {
     const createResponse = await request(app.getHttpServer())
       .post('/webhooks')
+      .set(ADMIN_HEADERS)
       .send({
         name: 'Secure Webhook',
         url: 'https://example.com/secure',
@@ -131,6 +151,7 @@ describe('WebhooksController (e2e)', () => {
 
     const listResponse = await request(app.getHttpServer())
       .get('/webhooks')
+      .set(ADMIN_HEADERS)
       .expect(200);
     const listBody = listResponse.body as ListResponseBody<WebhookResponseBody>;
     expect(listBody.data[0].secret).toBeUndefined();
@@ -138,6 +159,7 @@ describe('WebhooksController (e2e)', () => {
 
     const getResponse = await request(app.getHttpServer())
       .get(`/webhooks/${created.id}`)
+      .set(ADMIN_HEADERS)
       .expect(200);
     const fetched = getResponse.body as WebhookResponseBody;
     expect(fetched.secret).toBeUndefined();
@@ -145,6 +167,7 @@ describe('WebhooksController (e2e)', () => {
 
     const patchResponse = await request(app.getHttpServer())
       .patch(`/webhooks/${created.id}`)
+      .set(ADMIN_HEADERS)
       .send({ name: 'Renamed Secure Webhook' })
       .expect(200);
     const patched = patchResponse.body as WebhookResponseBody;
@@ -155,6 +178,7 @@ describe('WebhooksController (e2e)', () => {
   it('GET /webhooks lists webhooks with query filters', async () => {
     await request(app.getHttpServer())
       .post('/webhooks')
+      .set(ADMIN_HEADERS)
       .send({
         name: 'Budget Alerts',
         url: 'https://example.com/webhook',
@@ -164,6 +188,7 @@ describe('WebhooksController (e2e)', () => {
 
     const response = await request(app.getHttpServer())
       .get('/webhooks?isActive=true&eventType=BUDGET_WARNING')
+      .set(ADMIN_HEADERS)
       .expect(200);
 
     const body = response.body as ListResponseBody<WebhookResponseBody>;
@@ -182,6 +207,7 @@ describe('WebhooksController (e2e)', () => {
   it('GET /webhooks/event-types returns supported event types', async () => {
     const response = await request(app.getHttpServer())
       .get('/webhooks/event-types')
+      .set(ADMIN_HEADERS)
       .expect(200);
 
     const body = response.body as ListResponseBody<string>;
@@ -205,6 +231,7 @@ describe('WebhooksController (e2e)', () => {
   it('GET /webhooks/event-types is not captured as /webhooks/:id', async () => {
     const response = await request(app.getHttpServer())
       .get('/webhooks/event-types')
+      .set(ADMIN_HEADERS)
       .expect(200);
 
     const body = response.body as ListResponseBody<string>;
@@ -257,6 +284,7 @@ describe('WebhooksController (e2e)', () => {
     try {
       const createResponse = await request(app.getHttpServer())
         .post('/webhooks')
+        .set(ADMIN_HEADERS)
         .send({
           name: 'External Test',
           url: receiver.url,
@@ -270,6 +298,7 @@ describe('WebhooksController (e2e)', () => {
 
       const testResponse = await request(app.getHttpServer())
         .post(`/webhooks/${created.id}/test`)
+        .set(ADMIN_HEADERS)
         .send({ payload: { message: 'hello' } })
         .expect(200);
 
@@ -307,6 +336,7 @@ describe('WebhooksController (e2e)', () => {
     try {
       await request(app.getHttpServer())
         .post('/webhooks')
+        .set(ADMIN_HEADERS)
         .send({
           name: 'Generic Webhook',
           provider: 'GENERIC',
@@ -355,6 +385,7 @@ describe('WebhooksController (e2e)', () => {
   it('POST /webhooks creates a Discord webhook config', async () => {
     const response = await request(app.getHttpServer())
       .post('/webhooks')
+      .set(ADMIN_HEADERS)
       .send({
         name: 'Discord Sentinel Alerts',
         provider: 'DISCORD',
@@ -386,6 +417,7 @@ describe('WebhooksController (e2e)', () => {
     try {
       await request(app.getHttpServer())
         .post('/webhooks')
+        .set(ADMIN_HEADERS)
         .send({
           name: 'Discord Sentinel Alerts',
           provider: 'DISCORD',
@@ -455,6 +487,7 @@ describe('WebhooksController (e2e)', () => {
   it('POST /webhooks creates a Slack webhook config', async () => {
     const response = await request(app.getHttpServer())
       .post('/webhooks')
+      .set(ADMIN_HEADERS)
       .send({
         name: 'Slack Sentinel Alerts',
         provider: 'SLACK',
@@ -471,7 +504,7 @@ describe('WebhooksController (e2e)', () => {
       id: 'wh_001',
       name: 'Slack Sentinel Alerts',
       provider: 'SLACK',
-      url: 'https://hooks.slack.com/services/test/test/test',
+      url: 'https://hooks.slack.com/services/***',
       eventTypes: ['INCIDENT_CREATED'],
       isActive: true,
       hasSecret: false,
@@ -480,9 +513,44 @@ describe('WebhooksController (e2e)', () => {
     expect(body.secret).toBeUndefined();
   });
 
+  it('does not expose raw Slack webhook URLs in public responses', async () => {
+    const slackUrl = 'https://hooks.slack.com/services/test/test/test';
+    const createResponse = await request(app.getHttpServer())
+      .post('/webhooks')
+      .set(ADMIN_HEADERS)
+      .send({
+        name: 'Slack Secret Url',
+        provider: 'SLACK',
+        url: slackUrl,
+        eventTypes: ['INCIDENT_CREATED'],
+      })
+      .expect(201);
+
+    const created = createResponse.body as WebhookResponseBody;
+    expect(created.url).toBe('https://hooks.slack.com/services/***');
+    expect(JSON.stringify(created)).not.toContain(slackUrl);
+
+    const listResponse = await request(app.getHttpServer())
+      .get('/webhooks')
+      .set(ADMIN_HEADERS)
+      .expect(200);
+    const listBody = listResponse.body as ListResponseBody<WebhookResponseBody>;
+    expect(listBody.data[0].url).toBe('https://hooks.slack.com/services/***');
+    expect(JSON.stringify(listBody)).not.toContain(slackUrl);
+
+    const getResponse = await request(app.getHttpServer())
+      .get(`/webhooks/${created.id}`)
+      .set(ADMIN_HEADERS)
+      .expect(200);
+    const fetched = getResponse.body as WebhookResponseBody;
+    expect(fetched.url).toBe('https://hooks.slack.com/services/***');
+    expect(JSON.stringify(fetched)).not.toContain(slackUrl);
+  });
+
   it('GET /webhooks returns provider SLACK for Slack webhooks', async () => {
     await request(app.getHttpServer())
       .post('/webhooks')
+      .set(ADMIN_HEADERS)
       .send({
         name: 'Slack Sentinel Alerts',
         provider: 'SLACK',
@@ -493,6 +561,7 @@ describe('WebhooksController (e2e)', () => {
 
     const response = await request(app.getHttpServer())
       .get('/webhooks?eventType=BUDGET_WARNING')
+      .set(ADMIN_HEADERS)
       .expect(200);
 
     const body = response.body as ListResponseBody<WebhookResponseBody>;
@@ -501,6 +570,7 @@ describe('WebhooksController (e2e)', () => {
     expect(body.data[0]).toMatchObject({
       name: 'Slack Sentinel Alerts',
       provider: 'SLACK',
+      url: 'https://hooks.slack.com/services/***',
       eventTypes: ['BUDGET_WARNING'],
     });
     expect(body.data[0].secret).toBeUndefined();
@@ -512,6 +582,7 @@ describe('WebhooksController (e2e)', () => {
     try {
       await request(app.getHttpServer())
         .post('/webhooks')
+        .set(ADMIN_HEADERS)
         .send({
           name: 'Slack Sentinel Alerts',
           provider: 'SLACK',
@@ -581,6 +652,7 @@ describe('WebhooksController (e2e)', () => {
   it('SLACK provider rejects missing url', async () => {
     await request(app.getHttpServer())
       .post('/webhooks')
+      .set(ADMIN_HEADERS)
       .send({
         name: 'Slack Missing Url',
         provider: 'SLACK',
@@ -595,6 +667,7 @@ describe('WebhooksController (e2e)', () => {
     try {
       await request(app.getHttpServer())
         .post('/webhooks')
+        .set(ADMIN_HEADERS)
         .send({
           name: 'Active Incident Webhook',
           url: receiver.url,
@@ -606,6 +679,7 @@ describe('WebhooksController (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/webhooks')
+        .set(ADMIN_HEADERS)
         .send({
           name: 'Inactive Incident Webhook',
           url: receiver.url,
@@ -617,6 +691,7 @@ describe('WebhooksController (e2e)', () => {
 
       await request(app.getHttpServer())
         .post('/webhooks')
+        .set(ADMIN_HEADERS)
         .send({
           name: 'Active Budget Webhook',
           url: receiver.url,
@@ -661,6 +736,7 @@ describe('WebhooksController (e2e)', () => {
     try {
       await request(app.getHttpServer())
         .post('/webhooks')
+        .set(ADMIN_HEADERS)
         .send({
           name: 'Failing Webhook',
           url: receiver.url,
@@ -690,6 +766,7 @@ describe('WebhooksController (e2e)', () => {
 
       const deliveriesResponse = await request(app.getHttpServer())
         .get('/webhook-deliveries?status=FAILED')
+        .set(ADMIN_HEADERS)
         .expect(200);
       const deliveries =
         deliveriesResponse.body as ListResponseBody<DeliveryResponseBody>;
@@ -711,6 +788,7 @@ describe('WebhooksController (e2e)', () => {
   it('PATCH /webhooks/:id can update isActive and eventTypes', async () => {
     const createResponse = await request(app.getHttpServer())
       .post('/webhooks')
+      .set(ADMIN_HEADERS)
       .send({
         name: 'Mutable Webhook',
         url: 'https://example.com/mutable',
@@ -723,6 +801,7 @@ describe('WebhooksController (e2e)', () => {
 
     const patchResponse = await request(app.getHttpServer())
       .patch(`/webhooks/${created.id}`)
+      .set(ADMIN_HEADERS)
       .send({
         isActive: true,
         eventTypes: ['INCIDENT_RESOLVED', 'FALLBACK_ACTIVATED'],
@@ -744,6 +823,7 @@ describe('WebhooksController (e2e)', () => {
     try {
       const createResponse = await request(app.getHttpServer())
         .post('/webhooks')
+        .set(ADMIN_HEADERS)
         .send({
           name: 'Delivery Filter Webhook',
           url: receiver.url,
@@ -767,6 +847,7 @@ describe('WebhooksController (e2e)', () => {
         .get(
           `/webhook-deliveries?status=SUCCESS&eventType=INCIDENT_RESOLVED&webhookId=${created.id}`,
         )
+        .set(ADMIN_HEADERS)
         .expect(200);
 
       const body = response.body as ListResponseBody<DeliveryResponseBody>;
@@ -786,6 +867,7 @@ describe('WebhooksController (e2e)', () => {
   it('DELETE /webhooks/:id deactivates a webhook', async () => {
     const createResponse = await request(app.getHttpServer())
       .post('/webhooks')
+      .set(ADMIN_HEADERS)
       .send({
         name: 'Incident Notifications',
         url: 'https://example.com/incidents',
@@ -798,6 +880,7 @@ describe('WebhooksController (e2e)', () => {
 
     const deleteResponse = await request(app.getHttpServer())
       .delete(`/webhooks/${createdWebhook.id}`)
+      .set(ADMIN_HEADERS)
       .expect(200);
 
     const deletedWebhook = deleteResponse.body as WebhookResponseBody;
@@ -809,6 +892,7 @@ describe('WebhooksController (e2e)', () => {
 
     const listResponse = await request(app.getHttpServer())
       .get('/webhooks?isActive=true')
+      .set(ADMIN_HEADERS)
       .expect(200);
 
     const listBody = listResponse.body as ListResponseBody<WebhookResponseBody>;
