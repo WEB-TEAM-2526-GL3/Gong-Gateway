@@ -30,4 +30,22 @@ export class ClientService {
     await this.clientRepo.archive(id);
     this.eventEmitter.emit('client.archived', { clientId: id });
   }
+
+  async listClients(): Promise<Client[]> {
+    return this.clientRepo.findAllActive();
+  }
+
+  async getClient(id: string): Promise<Client> {
+    const client = await this.clientRepo.findById(id);
+    if (!client) throw new NotFoundException('Client not found');
+    return client;
+  }
+
+  async updateClient(id: string, dto: UpdateClientDto): Promise<Client> {
+    const client = await this.clientRepo.findById(id);
+    if (!client) throw new NotFoundException('Client not found');
+    if (dto.name) client.name = dto.name;
+    if (dto.team) client.team = dto.team;
+    return this.clientRepo.save(client);
+  }
 }

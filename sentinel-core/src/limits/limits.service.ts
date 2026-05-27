@@ -63,4 +63,41 @@ export class LimitsService {
       }
     });
   }
+
+  async getRequestLimit(clientId: string, providerId: string): Promise<RequestLimit | null> {
+    return this.requestLimitRepo.findByClientAndProvider(clientId, providerId);
+  }
+
+  async setRequestLimit(dto: SetRequestLimitDto): Promise<RequestLimit> {
+    const existing = await this.requestLimitRepo.findByClientAndProvider(dto.clientId, dto.providerId);
+    if (existing) await this.requestLimitRepo.archive(existing.id);
+    return this.requestLimitRepo.save({
+      clientId: dto.clientId,
+      providerId: dto.providerId,
+      maxRequests: dto.maxRequests,
+      isArchived: false,
+    } as RequestLimit);
+  }
+
+  async archiveRequestLimit(id: string): Promise<void> {
+    await this.requestLimitRepo.archive(id);
+  }
+
+  async getTokenLimit(providerId: string): Promise<TokenLimit | null> {
+    return this.tokenLimitRepo.findByProvider(providerId);
+  }
+
+  async setTokenLimit(dto: SetTokenLimitDto): Promise<TokenLimit> {
+    const existing = await this.tokenLimitRepo.findByProvider(dto.providerId);
+    if (existing) await this.tokenLimitRepo.archive(existing.id);
+    return this.tokenLimitRepo.save({
+      providerId: dto.providerId,
+      maxTokens: dto.maxTokens,
+      isArchived: false,
+    } as TokenLimit);
+  }
+
+  async archiveTokenLimit(id: string): Promise<void> {
+    await this.tokenLimitRepo.archive(id);
+  }
 }

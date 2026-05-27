@@ -119,4 +119,38 @@ export class ProviderService {
       default: return '';
     }
   }
+
+  async listProviders(): Promise<Provider[]> {
+    return this.providerRepo.findAllActive();
+  }
+
+  async getProvider(id: string): Promise<Provider> {
+    const provider = await this.providerRepo.findById(id);
+    if (!provider) throw new NotFoundException('Provider not found');
+    return provider;
+  }
+
+  async updateProvider(id: string, dto: UpdateProviderDto): Promise<Provider> {
+    const provider = await this.providerRepo.findById(id);
+    if (!provider) throw new NotFoundException('Provider not found');
+
+    if (dto.name && provider.kind === 'generic') {
+      await this.providerRepo.updateGenericName(id, dto.name);
+    }
+    if (dto.modelName && provider.kind === 'llm') {
+      await this.providerRepo.updateAIModelName(id, dto.modelName);
+    }
+    if (dto.baseUrl) {
+      await this.providerRepo.updateBase(id, { baseUrl: dto.baseUrl });
+      try {
+        await this.kongAdapter.updateServiceUrl(provider.serviceNameCached, dto.baseUrl);
+      } catch (err) {
+        this.logger.error(`Failed to update Kong service URL: ${err.message}`);
+      }
+    }
+
+    const updated = await this.providerRepo.findById(id);
+    this.eventEmitter.emit('provider.updated', { providerId: id, changes: dto });
+    return updated!;
+  }
 }

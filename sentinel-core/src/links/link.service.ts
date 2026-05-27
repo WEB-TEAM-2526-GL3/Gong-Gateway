@@ -214,6 +214,10 @@ export class LinkService {
 
   // ─── Queries ──────────────────────────────────────────────────────
 
+  async getLinksForProvider(providerId: string): Promise<ClientProviderLink[]> {
+    return this.linkRepo.findByProvider(providerId);
+  }
+
   async getClientStatus(clientId: string): Promise<{
     selectedLink: any | null;
     secondaries: any[];

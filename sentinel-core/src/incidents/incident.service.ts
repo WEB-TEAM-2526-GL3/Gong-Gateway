@@ -124,4 +124,8 @@ export class IncidentService {
       );
     });
   }
+
+  async getIncidents(clientId: string): Promise<Incident[]> {
+    return this.incidentRepo.findByClient(clientId);
+  }
 }

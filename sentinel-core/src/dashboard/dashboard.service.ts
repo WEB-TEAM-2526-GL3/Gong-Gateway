@@ -179,6 +179,14 @@ export class DashboardService {
         });
       }
     });
+    
+    this.eventEmitter.on('link.activated', (evt) => {
+      this.broadcastToMatching(evt, {
+        type: 'update',
+        path: 'secondaries',
+        data: evt,
+      });
+    });
 
     this.eventEmitter.on('incident.created', (incident) => {
       this.broadcastToMatching(incident, {

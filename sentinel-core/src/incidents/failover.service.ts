@@ -11,4 +11,18 @@ export class FailoverService {
 
     return reason === 'dead' ? rule.onDead : rule.onLimit;
   }
+
+
+  async getRule(clientId: string): Promise<FailoverRule | null> {
+    return this.failoverRepo.findByClient(clientId);
+  }
+
+  async setRule(dto: SetFailoverRuleDto): Promise<FailoverRule> {
+    const rule = await this.failoverRepo.save({
+      clientId: dto.clientId,
+      onLimit: dto.onLimit,
+      onDead: dto.onDead,
+    } as FailoverRule);
+    return rule;
+  }
 }
