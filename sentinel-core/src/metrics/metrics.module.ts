@@ -6,12 +6,14 @@ import { HealthService } from './health.service';
 import { LimitsService } from './limits.service';
 import { LinkModule } from '../links/link.module';
 import { LimitModule } from '../limits/limit.module';
+import { ProviderModule } from '../providers/provider.module';
 
 @Module({
   imports: [
     HttpModule.register({ timeout: 5000 }),
-    LinkModule,   // for ClientProviderLinkRepository (filter building)
-    LimitModule,  // for RequestLimitRepository, TokenLimitRepository
+    LinkModule,
+    LimitModule,
+    ProviderModule,
   ],
   providers: [PrometheusService, MetricsService, HealthService, LimitsService],
   exports: [PrometheusService, MetricsService, HealthService, LimitsService],

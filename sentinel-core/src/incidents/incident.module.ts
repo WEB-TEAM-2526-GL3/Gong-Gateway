@@ -4,10 +4,16 @@ import { Incident } from './incident.entity';
 import { FailoverRule } from './failover-rule.entity';
 import { IncidentRepository } from './incident.repository';
 import { FailoverRuleRepository } from './failover-rule.repository';
+import { IncidentService } from './incident.service';
+import { FailoverService } from './failover.service';
+import { LinkModule } from '../links/link.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Incident, FailoverRule])],
-  providers: [IncidentRepository, FailoverRuleRepository],
-  exports: [IncidentRepository, FailoverRuleRepository],
+  imports: [
+    TypeOrmModule.forFeature([Incident, FailoverRule]),
+    LinkModule,
+  ],
+  providers: [IncidentRepository, FailoverRuleRepository, IncidentService, FailoverService],
+  exports: [IncidentRepository, FailoverRuleRepository, IncidentService, FailoverService],
 })
 export class IncidentModule {}

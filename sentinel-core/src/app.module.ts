@@ -24,7 +24,7 @@ import { ClientModule } from './clients/client.module';
 import { LinkModule } from './links/link.module';
 import { IncidentModule } from './incidents/incident.module';
 import { LimitModule } from './limits/limit.module';
-//import { MetricsModule } from './metrics/metrics.module';
+import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
   imports: [
@@ -66,7 +66,7 @@ import { LimitModule } from './limits/limit.module';
     LimitModule,
 
     // Metrics (Prometheus + MetricsService + Health + Limits)
-    //MetricsModule,
+    MetricsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
