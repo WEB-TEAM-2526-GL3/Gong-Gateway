@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { GatewayAdapterModule } from './gateway-adapter/gateway-adapter.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
+import { WebhooksModule } from './webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { MonitoringModule } from './monitoring/monitoring.module';
     DashboardModule,
     IncidentsModule,
     MonitoringModule,
+    WebhooksModule,
   ],
   controllers: [AppController],
   providers: [AppService],
