@@ -1,17 +1,11 @@
 import { Module } from '@nestjs/common';
-import { InMemoryUsersRepository } from './infrastructure/in-memory-users.repository';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersService } from './users.service';
-import { USERS_REPOSITORY } from './users.constants';
+import { UserEntity } from './entities/user.entity';
 
 @Module({
-  providers: [
-    UsersService,
-    InMemoryUsersRepository,
-    {
-      provide: USERS_REPOSITORY,
-      useExisting: InMemoryUsersRepository,
-    },
-  ],
-  exports: [UsersService, USERS_REPOSITORY],
+  imports: [TypeOrmModule.forFeature([UserEntity])],
+  providers: [UsersService],
+  exports: [UsersService],
 })
 export class UsersModule {}

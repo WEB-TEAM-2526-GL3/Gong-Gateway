@@ -1,24 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
+import type { AxiosResponse } from 'axios';
 import { firstValueFrom } from 'rxjs';
-
-export interface MetricsFilter {
-  clientId?: string;
-  providerId?: string;
-}
-
-export interface KongMetrics {
-  totalRequests: number;
-  requestsPerSecond: number;
-  statusCodes: Record<string, number>;
-  latency: { p50: number; p95: number; p99: number };
-}
-
-export interface AiTokens {
-  prompt: number;
-  completion: number;
-  total: number;
-}
+import type { GatewayMetrics, MetricsScope } from './types/metrics.types.js';
 
 @Injectable()
 export class PrometheusService {
@@ -28,18 +12,11 @@ export class PrometheusService {
 
   constructor(private readonly http: HttpService) {}
 
-  /**
-   * Fetch HTTP metrics for a given filter + time range.
-   * Builds PromQL internally based on the naming convention:
-   *   - Per client+provider:  service name = "{client}-{provider}-svc"
-   *   - Per provider (global): service name = "{provider}-svc"
-   *   - Per client (global):   service regex  = "{client}-.*"
-   *   - Global:                no filter
-   */
-  async queryMetrics(
-    filter: MetricsFilter,
+  async queryGatewayMetrics(
+    filter: MetricsScope,
     range = '5m',
-  ): Promise<KongMetrics> {
+  ): Promise<GatewayMetrics> {
+    console.log('[PrometheusService] queryGatewayMetrics', { filter, range });
     const labels = this.buildServiceLabels(filter);
 
     const [totalRequests, requestsPerSecond, statusCodes, p50, p95, p99] =
@@ -62,87 +39,71 @@ export class PrometheusService {
         ),
       ]);
 
-    return {
+    const metrics = {
       totalRequests,
       requestsPerSecond,
       statusCodes,
       latency: { p50, p95, p99 },
     };
+
+    console.log('[PrometheusService] queryGatewayMetrics result', metrics);
+
+    return metrics;
   }
 
-  /**
-   * Fetch AI token counters for a provider+model.
-   * Labels: ai_provider="{name}", ai_model="{model}"
-   * Uses the naming convention: providerId = "openai:gpt-4o" (name:model).
-   */
-  async queryAiTokens(
-    providerId: string,
-    modelName: string,
-    range = '5m',
-  ): Promise<AiTokens> {
-    const labels = `{ai_provider="${providerId}",ai_model="${modelName}"}`;
-    const [prompt, completion, total] = await Promise.all([
-      this.querySingle(
-        `sum(increase(kong_ai_llm_tokens_total${labels}{token_type="prompt_tokens"}[${range}]))`,
-      ),
-      this.querySingle(
-        `sum(increase(kong_ai_llm_tokens_total${labels}{token_type="completion_tokens"}[${range}]))`,
-      ),
-      this.querySingle(
-        `sum(increase(kong_ai_llm_tokens_total${labels}{token_type="total_tokens"}[${range}]))`,
-      ),
-    ]);
-
-    return { prompt, completion, total };
+  async queryScalar(query: string): Promise<number> {
+    return this.querySingle(query);
   }
 
-  /**
-   * Execute a range query (for historical charts).
-   * Returns raw Prometheus matrix.
-   */
   async queryRange(
     query: string,
     start: string,
     end: string,
     step: string,
-  ): Promise<any> {
-    const { data } = await firstValueFrom(
+  ): Promise<PrometheusResponse> {
+    console.log('[PrometheusService] queryRange', { query, start, end, step });
+    const response: AxiosResponse<PrometheusResponse> = await firstValueFrom(
       this.http.get(`${this.baseUrl}/api/v1/query_range`, {
         params: { query, start, end, step },
       }),
     );
-    return data;
+
+    console.log('[PrometheusService] queryRange result', response.data);
+
+    return response.data;
   }
 
-  // ─── Private helpers ──────────────────────────────────────────────
-
-  private buildServiceLabels(filter: MetricsFilter): string {
-    if (filter.clientId && filter.providerId) {
-      // Specific client-provider pair
-      return `{service="${filter.clientId}-${filter.providerId}-svc"}`;
+  private buildServiceLabels(filter: MetricsScope): string {
+    if (filter.consumerId && filter.serviceId) {
+      return `{service="${filter.consumerId}-${filter.serviceId}-svc"}`;
     }
-    if (filter.clientId) {
-      // All services for this client
-      return `{service=~"${filter.clientId}-.*"}`;
+    if (filter.consumerId) {
+      return `{service=~"${filter.consumerId}-.*"}`;
     }
-    if (filter.providerId) {
-      // All services for this provider (across clients)
-      return `{service=~".*-${filter.providerId}-svc"}`;
+    if (filter.serviceId) {
+      return `{service=~".*-${filter.serviceId}-svc"}`;
     }
-    // Global — no filter
     return '';
   }
 
   private async querySingle(query: string): Promise<number> {
     try {
+      console.log('[PrometheusService] querySingle', query);
       const { data } = await firstValueFrom(
         this.http.get<PrometheusResponse>(`${this.baseUrl}/api/v1/query`, {
           params: { query },
         }),
       );
       if (data.status === 'success' && data.data.result.length > 0) {
-        return parseFloat(data.data.result[0].value?.[1] ?? '0');
+        const value = parseFloat(data.data.result[0].value?.[1] ?? '0');
+        console.log('[PrometheusService] querySingle result', { query, value });
+        return value;
       }
+
+      console.log('[PrometheusService] querySingle result', {
+        query,
+        value: 0,
+      });
       return 0;
     } catch (err) {
       this.logger.error(`Prometheus query failed: ${query}`, err);
@@ -156,6 +117,10 @@ export class PrometheusService {
   ): Promise<Record<string, number>> {
     const query = `sum by (code) (increase(kong_http_status${labels}[${range}]))`;
     try {
+      console.log('[PrometheusService] queryStatusCodeBreakdown', {
+        labels,
+        range,
+      });
       const { data } = await firstValueFrom(
         this.http.get<PrometheusResponse>(`${this.baseUrl}/api/v1/query`, {
           params: { query },
@@ -167,9 +132,16 @@ export class PrometheusService {
           result[item.metric.code] = parseFloat(item.value?.[1] ?? '0');
         }
       }
+
+      console.log('[PrometheusService] queryStatusCodeBreakdown result', {
+        labels,
+        range,
+        result,
+      });
+
       return result;
     } catch (err) {
-      this.logger.error(`Status code query failed`, err);
+      this.logger.error('Status code query failed', err);
       return {};
     }
   }

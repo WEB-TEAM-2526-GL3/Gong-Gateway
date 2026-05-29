@@ -1,177 +1,195 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import {
-  PrometheusService,
-  KongMetrics,
-  AiTokens,
-  MetricsFilter,
-} from './prometheus.service';
-import { LinkRepository } from '../links/link.repository';
-import { ProviderRepository } from '../providers/provider.repository';
+import { PrometheusService } from './prometheus.service';
+
+import type {
+  HealthChangedEvent,
+  MetricsPollFailedEvent,
+  MetricsUpdatedEvent,
+} from './events/metrics.events.js';
+import type { GatewayMetrics, MetricsScope } from './types/metrics.types.js';
 
 interface CachedMetrics {
-  metrics: KongMetrics;
-  timestamp: Date;
-}
-
-interface CachedAiTokens {
-  tokens: AiTokens;
+  metrics: GatewayMetrics;
   timestamp: Date;
 }
 
 @Injectable()
-export class MetricsService {
+export class MetricsService implements OnModuleDestroy {
   private readonly logger = new Logger(MetricsService.name);
-  private cache = new Map<string, CachedMetrics>(); // key: "clientId:providerId"
-  private aiCache = new Map<string, CachedAiTokens>(); // key: "providerId:modelName"
-  private history = new Map<string, KongMetrics[]>(); // ring buffer (last 20)
+  private readonly cache = new Map<string, CachedMetrics>();
+  private readonly errorCounters = new Map<string, number>();
+  private readonly healthState = new Map<string, boolean>();
+  private pollInterval?: NodeJS.Timeout;
+  private scopes: MetricsScope[] = [{}];
 
   constructor(
     private readonly prometheus: PrometheusService,
-    private readonly linkRepo: LinkRepository,
-    private readonly providerRepo: ProviderRepository,
     private readonly eventEmitter: EventEmitter2,
   ) {
     this.startPolling();
   }
 
-  // ─── Polling ──────────────────────────────────────────────────────
+  onModuleDestroy(): void {
+    this.stopPolling();
+  }
 
-  private startPolling(): void {
-    this.pollAll();
-    setInterval(() => this.pollAll(), 15000);
+  setScopes(scopes: MetricsScope[]): void {
+    this.scopes = scopes.length ? scopes.slice() : [{}];
+  }
+
+  queryGatewayMetrics(
+    scope: MetricsScope,
+    range = '5m',
+  ): Promise<GatewayMetrics> {
+    return this.prometheus.queryGatewayMetrics(scope, range);
+  }
+
+  queryPrometheusScalar(query: string): Promise<number> {
+    return this.prometheus.queryScalar(query);
+  }
+
+  private startPolling(intervalMs = 15000): void {
+    void this.pollAll();
+    this.pollInterval = setInterval(() => {
+      void this.pollAll();
+    }, intervalMs);
+  }
+
+  private stopPolling(): void {
+    if (!this.pollInterval) {
+      return;
+    }
+
+    clearInterval(this.pollInterval);
+    this.pollInterval = undefined;
   }
 
   private async pollAll(): Promise<void> {
-    const filters = await this.buildActiveFilters();
-    for (const filter of filters) {
+    console.log('[MetricsService] pollAll start', { scopes: this.scopes });
+    for (const scope of this.scopes) {
       try {
-        const metrics = await this.prometheus.queryMetrics(filter, '5m');
-        const key = `${filter.clientId ?? 'global'}:${filter.providerId ?? 'global'}`;
+        const metrics = await this.queryGatewayMetrics(scope, '5m');
+        const key = this.scopeKey(scope);
         const prev = this.cache.get(key);
+        const timestamp = new Date();
 
-        this.cache.set(key, { metrics, timestamp: new Date() });
-        this.addToHistory(key, metrics);
+        this.cache.set(key, { metrics, timestamp });
+
+        const serviceId = scope.serviceId ?? 'global';
+        this.updateServiceHealth(serviceId, metrics.statusCodes, timestamp);
 
         if (!prev || this.hasMetricsChanged(prev.metrics, metrics)) {
-          this.eventEmitter.emit('metrics.updated', {
-            clientId: filter.clientId ?? 'global',
-            providerId: filter.providerId ?? 'global',
+          const event: MetricsUpdatedEvent = {
+            consumerId: scope.consumerId ?? 'global',
+            serviceId,
             metrics,
-            timestamp: new Date(),
+            timestamp,
+          };
+          console.log('[MetricsService] metrics.updated', {
+            ...event,
           });
+          this.eventEmitter.emit('metrics.updated', event);
         }
-      } catch (err) {
-        this.logger.error(
-          `Metrics poll failed for ${filter.clientId}:${filter.providerId}`,
-          err,
-        );
-      }
-    }
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
 
-    // AI tokens per AI provider
-    const aiPairs = await this.buildAIPairs();
-    for (const { providerId, modelName } of aiPairs) {
-      try {
-        const tokens = await this.prometheus.queryAiTokens(
-          providerId,
-          modelName,
-          '5m',
-        );
-        const key = `${providerId}:${modelName}`;
-        const prev = this.aiCache.get(key);
-        this.aiCache.set(key, { tokens, timestamp: new Date() });
-
-        if (
-          !prev ||
-          prev.tokens.prompt !== tokens.prompt ||
-          prev.tokens.completion !== tokens.completion
-        ) {
-          this.eventEmitter.emit('ai.tokens.updated', {
-            providerId,
-            modelName,
-            ...tokens,
-          });
-        }
-      } catch (err) {
         this.logger.error(
-          `AI token poll failed for ${providerId}:${modelName}`,
-          err,
+          `Metrics poll failed for ${scope.consumerId ?? 'global'}:${scope.serviceId ?? 'global'} - ${errorMessage}`,
         );
+
+        console.log('[MetricsService] metrics.poll.failed', {
+          consumerId: scope.consumerId ?? 'global',
+          serviceId: scope.serviceId ?? 'global',
+          error: errorMessage,
+        });
+
+        const event: MetricsPollFailedEvent = {
+          consumerId: scope.consumerId ?? 'global',
+          serviceId: scope.serviceId ?? 'global',
+          source: 'prometheus',
+          error: errorMessage,
+          timestamp: new Date(),
+        };
+
+        this.eventEmitter.emit('metrics.poll.failed', event);
       }
     }
   }
 
-  // ─── Public API ───────────────────────────────────────────────────
-
-  getLatest(filter: MetricsFilter): KongMetrics | null {
-    const key = `${filter.clientId ?? 'global'}:${filter.providerId ?? 'global'}`;
+  getLatest(scope: MetricsScope): GatewayMetrics | null {
+    const key = this.scopeKey(scope);
     return this.cache.get(key)?.metrics ?? null;
   }
 
-  getAiTokens(providerId: string, modelName: string): AiTokens | null {
-    return this.aiCache.get(`${providerId}:${modelName}`)?.tokens ?? null;
+  getServiceHealth(serviceId: string): boolean | null {
+    return this.healthState.get(serviceId) ?? null;
   }
 
-  getRecentHistory(filter: MetricsFilter, count = 20): KongMetrics[] {
-    const key = `${filter.clientId ?? 'global'}:${filter.providerId ?? 'global'}`;
-    return (this.history.get(key) ?? []).slice(-count);
+  private scopeKey(scope: MetricsScope): string {
+    return `${scope.consumerId ?? 'global'}:${scope.serviceId ?? 'global'}`;
   }
 
-  // ─── Private Helpers ──────────────────────────────────────────────
-
-  private async buildActiveFilters(): Promise<MetricsFilter[]> {
-    const filters: MetricsFilter[] = [
-      { clientId: 'global', providerId: 'global' },
-    ];
-
-    const links = await this.linkRepo.findAllActive();
-    const seen = new Set<string>();
-
-    for (const link of links) {
-      // Per-client
-      const clientKey = `${link.clientId}:global`;
-      if (!seen.has(clientKey)) {
-        seen.add(clientKey);
-        filters.push({ clientId: link.clientId, providerId: 'global' });
-      }
-      // Per-provider
-      const providerKey = `global:${link.providerId}`;
-      if (!seen.has(providerKey)) {
-        seen.add(providerKey);
-        filters.push({ clientId: 'global', providerId: link.providerId });
-      }
-      // Per-pair
-      const pairKey = `${link.clientId}:${link.providerId}`;
-      if (!seen.has(pairKey)) {
-        seen.add(pairKey);
-        filters.push({ clientId: link.clientId, providerId: link.providerId });
-      }
+  private updateServiceHealth(
+    serviceId: string,
+    statusCodes: Record<string, number>,
+    timestamp: Date,
+  ): void {
+    if (serviceId === 'global') {
+      return;
     }
 
-    return filters;
+    const hasErrors = this.hasErrorStatus(statusCodes);
+    const current = this.errorCounters.get(serviceId) ?? 0;
+
+    if (hasErrors) {
+      const newCount = current + 1;
+      this.errorCounters.set(serviceId, newCount);
+
+      if (newCount >= 10 && this.healthState.get(serviceId) !== false) {
+        this.healthState.set(serviceId, false);
+        const event: HealthChangedEvent = {
+          serviceId,
+          healthy: false,
+          consecutiveErrorWindows: newCount,
+          timestamp,
+        };
+        console.log('[MetricsService] health.changed', {
+          ...event,
+        });
+        this.eventEmitter.emit('health.changed', event);
+      }
+
+      return;
+    }
+
+    this.errorCounters.set(serviceId, 0);
+    if (this.healthState.get(serviceId) !== true) {
+      this.healthState.set(serviceId, true);
+      const event: HealthChangedEvent = {
+        serviceId,
+        healthy: true,
+        consecutiveErrorWindows: 0,
+        timestamp,
+      };
+      console.log('[MetricsService] health.changed', {
+        ...event,
+      });
+      this.eventEmitter.emit('health.changed', event);
+    }
   }
 
-  private async buildAIPairs(): Promise<
-    { providerId: string; modelName: string }[]
-  > {
-    const providers = await this.providerRepo.findAllActive();
-    return providers
-      .filter((p) => p.kind === 'llm')
-      .map((p) => ({
-        providerId: (p as any).aiProvider?.aiProviderName,
-        modelName: (p as any).aiProvider?.aiModelName,
-      }));
+  private hasErrorStatus(statusCodes: Record<string, number>): boolean {
+    return Object.keys(statusCodes).some(
+      (code) => code.startsWith('5') || code === '429',
+    );
   }
 
-  private addToHistory(key: string, metrics: KongMetrics): void {
-    const hist = this.history.get(key) ?? [];
-    hist.push(metrics);
-    if (hist.length > 20) hist.shift();
-    this.history.set(key, hist);
-  }
-
-  private hasMetricsChanged(prev: KongMetrics, next: KongMetrics): boolean {
+  private hasMetricsChanged(
+    prev: GatewayMetrics,
+    next: GatewayMetrics,
+  ): boolean {
     return (
       prev.totalRequests !== next.totalRequests ||
       prev.requestsPerSecond !== next.requestsPerSecond ||

@@ -1,0 +1,6 @@
+export enum IncidentLogAction {
+  CREATED = 'CREATED',
+  MESSAGE = 'MESSAGE',
+  ACKNOWLEDGED = 'ACKNOWLEDGED',
+  RESOLVED = 'RESOLVED',
+}

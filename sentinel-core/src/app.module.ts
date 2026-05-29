@@ -1,69 +1,44 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-
-// Entities
-import { Provider } from './providers/provider.entity';
-import { AIProvider } from './providers/ai-provider.entity';
-import { Client } from './clients/client.entity';
-import { ClientProviderLink } from './links/link.entity';
-import { Incident } from './incidents/incident.entity';
-import { FailoverRule } from './incidents/failover-rule.entity';
-import { RequestLimit } from './limits/request-limit.entity';
-import { TokenLimit } from './limits/token-limit.entity';
-
-// Modules
 import { UsersModule } from './users/users.module';
-import { KongModule } from './kong/kong.module';
-import { KongAdapterModule } from './kong-adapter/kong-adapter.module';
-import { ProviderModule } from './providers/provider.module';
-import { ClientModule } from './clients/client.module';
-import { LinkModule } from './links/link.module';
-import { IncidentModule } from './incidents/incident.module';
-import { LimitModule } from './limits/limit.module';
+import { AuthModule } from './auth/auth.module';
+import { GatewayModule } from './gateway/gateway.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { WebhooksModule } from './webhooks/webhooks.module';
 import { MetricsModule } from './metrics/metrics.module';
+import { IncidentsModule } from './incidents/incidents.module';
 
 @Module({
   imports: [
-    // TypeORM
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '5433'),
-      username: process.env.DB_USERNAME || 'sentinel',
-      password: process.env.DB_PASSWORD || 'sentinel',
-      database: process.env.DB_DATABASE || 'sentinel_gateway',
-      entities: [
-        Provider,
-        AIProvider,
-        Client,
-        ClientProviderLink,
-        Incident,
-        FailoverRule,
-        RequestLimit,
-        TokenLimit,
-      ],
-      synchronize: true,
+    ConfigModule.forRoot({
+      isGlobal: true,
     }),
 
-    // Event Emitter
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('DB_HOST', 'localhost'),
+        port: Number(configService.get<string>('DB_PORT', '5433')),
+        username: configService.get<string>('DB_USERNAME', 'sentinel'),
+        password: configService.get<string>('DB_PASSWORD', 'sentinel'),
+        database: configService.get<string>('DB_DATABASE', 'sentinel_gateway'),
+        autoLoadEntities: true,
+        synchronize: true,
+      }),
+    }),
     EventEmitterModule.forRoot(),
 
-    // Team modules
     UsersModule,
-    KongModule,
-    KongAdapterModule,
-
-    // Domain modules
-    ProviderModule,
-    ClientModule,
-    LinkModule,
-    IncidentModule,
-    LimitModule,
-
-    // Metrics (Prometheus + MetricsService + Health + Limits)
+    AuthModule,
+    GatewayModule,
+    IncidentsModule,
+    MonitoringModule,
+    WebhooksModule,
     MetricsModule,
   ],
   controllers: [AppController],
