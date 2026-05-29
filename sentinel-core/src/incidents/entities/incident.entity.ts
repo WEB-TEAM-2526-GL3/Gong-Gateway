@@ -13,35 +13,32 @@ import { IncidentLogEntity } from './incident-log.entity';
 @Entity('incidents')
 export class IncidentEntity {
   @PrimaryColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'service_id', type: 'uuid' })
-  serviceId: string;
+  serviceId!: string;
 
   @Column({ name: 'provider_id', type: 'uuid' })
-  providerId: string;
+  providerId!: string;
 
   @Column({ type: 'enum', enum: IncidentSeverity })
-  severity: IncidentSeverity;
+  severity!: IncidentSeverity;
 
   @Column({ type: 'text' })
-  reason: string;
+  reason!: string;
 
   @Column({ type: 'enum', enum: IncidentStatus, default: IncidentStatus.OPEN })
-  status: IncidentStatus;
-
-  @Column({ name: 'fallback_provider_id', type: 'uuid', nullable: true })
-  fallbackProviderId: string | null;
+  status!: IncidentStatus;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @Column({ name: 'resolved_at', type: 'timestamp', nullable: true })
-  resolvedAt: Date | null;
+  resolvedAt!: Date | null;
 
   @OneToMany(() => IncidentLogEntity, (log) => log.incident)
-  logs: IncidentLogEntity[];
+  logs!: IncidentLogEntity[];
 }

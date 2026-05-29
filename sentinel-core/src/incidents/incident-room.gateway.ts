@@ -8,7 +8,6 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { ActivateFallbackDto } from './dto/activate-fallback.dto';
 import { IncidentActionDto } from './dto/incident-action.dto';
 import { JoinIncidentDto } from './dto/join-incident.dto';
 import { LeaveIncidentDto } from './dto/leave-incident.dto';
@@ -127,19 +126,6 @@ export class IncidentRoomGateway implements OnGatewayDisconnect {
     });
   }
 
-  @SubscribeMessage('activateFallback')
-  async activateFallback(
-    @MessageBody() body: ActivateFallbackDto,
-    @ConnectedSocket() client: Socket,
-  ): Promise<void> {
-    await this.handleSocketAction(client, body.incidentId, async () => {
-      const snapshot = await this.incidentsService.activateFallback(body);
-      this.server
-        .to(this.roomName(body.incidentId))
-        .emit('incidentUpdated', snapshot);
-    });
-  }
-
   private async handleSocketAction(
     client: Socket,
     incidentId: string,
@@ -156,7 +142,9 @@ export class IncidentRoomGateway implements OnGatewayDisconnect {
   }
 
   private addPresence(incidentId: string, admin: PresentAdmin): void {
-    const presence = this.presenceByIncident.get(incidentId) ?? new Map();
+    const presence =
+      this.presenceByIncident.get(incidentId) ??
+      new Map<string, PresentAdmin>();
     presence.set(admin.socketId, admin);
     this.presenceByIncident.set(incidentId, presence);
   }

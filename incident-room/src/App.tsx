@@ -7,8 +7,7 @@ type LogAction =
   | 'CREATED'
   | 'MESSAGE'
   | 'ACKNOWLEDGED'
-  | 'RESOLVED'
-  | 'FALLBACK_ACTIVATED';
+  | 'RESOLVED';
 
 interface Incident {
   id: string;
@@ -17,7 +16,6 @@ interface Incident {
   severity: IncidentSeverity;
   reason: string;
   status: IncidentStatus;
-  fallbackProviderId: string | null;
   createdAt: string;
   updatedAt: string;
   resolvedAt: string | null;
@@ -64,11 +62,7 @@ export default function App() {
   const [notice, setNotice] = useState('Ready');
   const [error, setError] = useState('');
   const [isJoined, setIsJoined] = useState(false);
-  const [fallback, setFallback] = useState({
-    serviceName: 'openai-service',
-    fallbackProviderId: '44444444-4444-4444-8444-444444444444',
-    fallbackUrl: 'http://gemini.local',
-  });
+  
   const socketRef = useRef<Socket | null>(null);
 
   const adminId = useMemo(() => makeAdminId(adminName), [adminName]);
@@ -234,16 +228,7 @@ export default function App() {
     });
   }
 
-  function activateFallback(event: FormEvent) {
-    event.preventDefault();
-    if (!selectedIncident) return;
-    socketRef.current?.emit('activateFallback', {
-      incidentId: selectedIncident.id,
-      adminId,
-      adminName,
-      ...fallback,
-    });
-  }
+  
 
   return (
     <main className="shell">
@@ -423,44 +408,7 @@ export default function App() {
                 </button>
               </form>
 
-              <details className="fallback-box">
-                <summary>Fallback controls</summary>
-                <form className="fallback-form" onSubmit={activateFallback}>
-                  <label>
-                    Service name
-                    <input
-                      value={fallback.serviceName}
-                      onChange={(event) =>
-                        setFallback({ ...fallback, serviceName: event.target.value })
-                      }
-                    />
-                  </label>
-                  <label>
-                    Provider ID
-                    <input
-                      value={fallback.fallbackProviderId}
-                      onChange={(event) =>
-                        setFallback({
-                          ...fallback,
-                          fallbackProviderId: event.target.value,
-                        })
-                      }
-                    />
-                  </label>
-                  <label>
-                    Fallback URL
-                    <input
-                      value={fallback.fallbackUrl}
-                      onChange={(event) =>
-                        setFallback({ ...fallback, fallbackUrl: event.target.value })
-                      }
-                    />
-                  </label>
-                  <button type="submit" disabled={selectedIncident.status === 'RESOLVED'}>
-                    Activate
-                  </button>
-                </form>
-              </details>
+              {/* Fallback feature removed */}
             </>
           )}
         </section>
@@ -503,7 +451,6 @@ function readError(error: unknown): string {
 }
 
 function labelAction(action: LogAction): string {
-  if (action === 'FALLBACK_ACTIVATED') return 'Fallback activated';
   return action.charAt(0) + action.slice(1).toLowerCase();
 }
 
@@ -511,8 +458,5 @@ function formatLogDetails(log: IncidentLog): string {
   if (typeof log.details.message === 'string') return log.details.message;
   if (typeof log.details.notes === 'string') return log.details.notes;
   if (typeof log.details.reason === 'string') return log.details.reason;
-  if (typeof log.details.fallbackUrl === 'string') {
-    return `Fallback URL: ${log.details.fallbackUrl}`;
-  }
   return JSON.stringify(log.details);
 }

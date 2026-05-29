@@ -38,7 +38,7 @@ services:
 
   # Kong bootstrap (runs migrations once, then exits)
   kong-bootstrap:
-    image: kong:3.4
+    image: kong:3.9.1
     container_name: kong-bootstrap
     networks:
       - kong-net
@@ -52,7 +52,7 @@ services:
 
   # Main Kong instance (Control Plane + Proxy)
   kong:
-    image: kong:3.4
+    image: kong:3.9.1
     container_name: kong
     restart: on-failure
     networks:
@@ -62,12 +62,31 @@ services:
       KONG_ADMIN_LISTEN: 0.0.0.0:8001
       KONG_PROXY_LISTEN: 0.0.0.0:8000
       KONG_LOG_LEVEL: info
+      # includes the plugins bundled out of the box like prometheus .... no need to activate
+      KONG_PLUGINS: bundled
     depends_on:
       kong-bootstrap:
         condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
     ports:
       - "8000:8000" # Proxy
       - "8001:8001" # Admin API
+
+  kong-setup:
+    image: kong/deck:latest
+    depends_on:
+      kong:
+        condition: service_healthy
+    networks:
+      - kong-net
+    volumes:
+      - ./kong.yaml:/kong.yaml
+    command: gateway sync --kong-addr http://kong:8001 /kong.yaml
+    restart: on-failure
 
     #sentinal_db
   sentinel-database:
@@ -89,3 +108,42 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
+
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: on-failure
+    networks:
+      - kong-net
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./rules.yml:/etc/prometheus/rules.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - "9090:9090"
+    depends_on:
+      kong:
+        condition: service_healthy
+
+
+  limit-exceeded:
+    image: node:18-alpine
+    container_name: limit-exceeded
+    networks:
+      - kong-net
+    volumes:
+      - ./sentinel-core/bad-services/limit-exceeded.js:/app.js
+    command: node /app.js
+    restart: on-failure
+
+  provider-dead:
+    image: node:18-alpine
+    container_name: provider-dead
+    networks:
+      - kong-net
+    volumes:
+      - ./sentinel-core/bad-services/provider-dead.js:/app.js
+    command: node /app.js
+    restart: on-failure

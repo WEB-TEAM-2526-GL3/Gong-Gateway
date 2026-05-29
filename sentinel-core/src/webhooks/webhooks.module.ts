@@ -2,6 +2,7 @@ import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { WebhookPayloadFormatterFactory } from './formatters/webhook-payload-formatter.factory';
 import { WebhookAdminGuard } from './guards/webhook-admin.guard';
+import { IncidentCreatedListener } from './listeners/incident-created.listener';
 import { WebhookDeliveriesController } from './webhook-deliveries.controller';
 import { WebhooksController } from './webhooks.controller';
 import { WebhooksRepository } from './webhooks.repository';
@@ -16,6 +17,7 @@ import { MessengerModule } from '../messenger/messenger.module';
     WebhooksRepository,
     WebhookPayloadFormatterFactory,
     WebhookAdminGuard,
+    IncidentCreatedListener,
   ],
   exports: [WebhooksService],
 })

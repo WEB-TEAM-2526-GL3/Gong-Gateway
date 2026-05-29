@@ -3,13 +3,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { IncidentsModule } from './incidents/incidents.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { GatewayAdapterModule } from './gateway-adapter/gateway-adapter.module';
-import { DashboardModule } from './dashboard/dashboard.module';
+import { GatewayModule } from './gateway/gateway.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { WebhooksModule } from './webhooks/webhooks.module';
+import { MetricsModule } from './metrics/metrics.module';
+import { IncidentsModule } from './incidents/incidents.module';
 
 @Module({
   imports: [
@@ -30,14 +31,15 @@ import { WebhooksModule } from './webhooks/webhooks.module';
         synchronize: true,
       }),
     }),
+    EventEmitterModule.forRoot(),
 
     UsersModule,
     AuthModule,
-    GatewayAdapterModule,
-    DashboardModule,
+    GatewayModule,
     IncidentsModule,
     MonitoringModule,
     WebhooksModule,
+    MetricsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

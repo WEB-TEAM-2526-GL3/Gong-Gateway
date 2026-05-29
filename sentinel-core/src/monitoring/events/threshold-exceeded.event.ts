@@ -2,13 +2,12 @@ import { IncidentSeverity } from '../enums/incident-severity.enum';
 import { MonitoringRuleType } from '../entities/monitoring-rule.entity';
 
 /**
- * Emitted by the Monitoring Controller when an active rule's threshold
+ * Emitted by the Monitoring Service when an active rule's threshold
  * is exceeded and the rule's cooldown window has passed.
  *
- * Consumer: Incident Service (owned by teammate) listens to the
- * 'monitoring.threshold.exceeded' channel and decides whether to open
- * an incident, page admins, etc. The Monitoring Controller has no
- * knowledge of incidents — it only reports anomalies.
+ * Consumer: the incident module listens to the
+ * 'monitoring.threshold.exceeded' channel and records the anomaly as
+ * an incident. The monitoring module has no incident logic.
  */
 export const THRESHOLD_EXCEEDED_EVENT = 'monitoring.threshold.exceeded';
 

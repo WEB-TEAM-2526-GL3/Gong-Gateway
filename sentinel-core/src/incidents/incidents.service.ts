@@ -1,12 +1,8 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ActivateFallbackDto } from './dto/activate-fallback.dto';
 import { CreateIncidentDto } from './dto/create-incident.dto';
 import { IncidentActionDto } from './dto/incident-action.dto';
 import { SendMessageDto } from './dto/send-message.dto';
@@ -15,12 +11,17 @@ import { IncidentStatus } from './enum/incident-status.enum';
 import { IncidentEntity } from './entities/incident.entity';
 import { IncidentLogEntity } from './entities/incident-log.entity';
 import { GenericService } from '../common/generic.service';
-import { KongAdapterService } from '../gateway-adapter/kong/kong-adapter.service';
+import {
+  THRESHOLD_EXCEEDED_EVENT,
+  ThresholdExceededEvent,
+} from '../monitoring/events/threshold-exceeded.event';
 
 export type IncidentSnapshot = {
   incident: IncidentEntity;
   logs: IncidentLogEntity[];
 };
+
+const SYSTEM_UUID = '00000000-0000-0000-0000-000000000000';
 
 @Injectable()
 export class IncidentsService extends GenericService<IncidentEntity, string> {
@@ -29,9 +30,21 @@ export class IncidentsService extends GenericService<IncidentEntity, string> {
     incidentsRepository: Repository<IncidentEntity>,
     @InjectRepository(IncidentLogEntity)
     private readonly logsRepository: Repository<IncidentLogEntity>,
-    private readonly kongAdapter: KongAdapterService,
+    private readonly eventEmitter: EventEmitter2,
   ) {
     super(incidentsRepository);
+  }
+
+  @OnEvent(THRESHOLD_EXCEEDED_EVENT)
+  async handleThresholdExceeded(event: ThresholdExceededEvent): Promise<void> {
+    await this.createIncident({
+      serviceId: SYSTEM_UUID,
+      providerId: event.providerId ?? SYSTEM_UUID,
+      severity: event.severity,
+      reason: event.reason,
+      adminId: 'system-monitoring',
+      adminName: 'Monitoring',
+    });
   }
 
   async createIncident(input: CreateIncidentDto): Promise<IncidentSnapshot> {
@@ -42,11 +55,10 @@ export class IncidentsService extends GenericService<IncidentEntity, string> {
       severity: input.severity,
       reason: input.reason,
       status: IncidentStatus.OPEN,
-      fallbackProviderId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
       resolvedAt: null,
-    } as IncidentEntity);
+    });
 
     await this.appendLog({
       incidentId: incident.id,
@@ -54,6 +66,12 @@ export class IncidentsService extends GenericService<IncidentEntity, string> {
       adminName: input.adminName,
       action: IncidentLogAction.CREATED,
       details: { reason: input.reason, severity: input.severity },
+    });
+
+    this.eventEmitter.emit('incident.created', {
+      id: incident.id,
+      reason: incident.reason,
+      timestamp: incident.createdAt,
     });
 
     return this.getIncidentSnapshot(incident.id);
@@ -66,12 +84,10 @@ export class IncidentsService extends GenericService<IncidentEntity, string> {
       throw new NotFoundException(`Incident "${id}" was not found`);
     }
 
-    const logs = await this.logsRepository.find({
+    return this.logsRepository.find({
       where: { incidentId: id },
       order: { createdAt: 'ASC', id: 'ASC' },
     });
-
-    return logs;
   }
 
   async getIncidentSnapshot(id: string): Promise<IncidentSnapshot> {
@@ -135,43 +151,6 @@ export class IncidentsService extends GenericService<IncidentEntity, string> {
       adminName: input.adminName,
       action: IncidentLogAction.RESOLVED,
       details: { notes: input.notes ?? null },
-    });
-
-    return this.getIncidentSnapshot(input.incidentId);
-  }
-
-  async activateFallback(
-    input: ActivateFallbackDto,
-  ): Promise<IncidentSnapshot> {
-    const incident = await this.getIncidentOrThrow(input.incidentId);
-
-    try {
-      await this.kongAdapter.activateFallback({
-        serviceName: input.serviceName,
-        fallbackUrl: input.fallbackUrl,
-        fallbackProviderId: input.fallbackProviderId,
-      });
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Unknown Kong error';
-      throw new BadRequestException(`Fallback activation failed: ${message}`);
-    }
-
-    incident.fallbackProviderId = input.fallbackProviderId;
-    incident.updatedAt = new Date();
-
-    await this.genericRepository.save(incident);
-
-    await this.appendLog({
-      incidentId: input.incidentId,
-      adminId: input.adminId,
-      adminName: input.adminName,
-      action: IncidentLogAction.FALLBACK_ACTIVATED,
-      details: {
-        serviceName: input.serviceName,
-        fallbackProviderId: input.fallbackProviderId,
-        fallbackUrl: input.fallbackUrl,
-      },
     });
 
     return this.getIncidentSnapshot(input.incidentId);

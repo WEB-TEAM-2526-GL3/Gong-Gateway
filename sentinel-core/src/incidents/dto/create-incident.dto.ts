@@ -3,23 +3,23 @@ import { IncidentSeverity } from '../enum/incident-severity.enum';
 
 export class CreateIncidentDto {
   @IsUUID()
-  serviceId: string;
+  serviceId!: string;
 
   @IsUUID()
-  providerId: string;
+  providerId!: string;
 
   @IsEnum(IncidentSeverity)
-  severity: IncidentSeverity;
+  severity!: IncidentSeverity;
 
   @IsString()
   @IsNotEmpty()
-  reason: string;
+  reason!: string;
 
   @IsString()
   @IsNotEmpty()
-  adminId: string;
+  adminId!: string;
 
   @IsString()
   @IsNotEmpty()
-  adminName: string;
+  adminName!: string;
 }

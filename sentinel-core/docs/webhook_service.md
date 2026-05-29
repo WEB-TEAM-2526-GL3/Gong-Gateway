@@ -279,6 +279,22 @@ une valeur masquee :
 }
 ```
 
+### Event Bridge Interne
+
+`IncidentModule` emet aussi un evenement interne `incident.created`.
+`WebhookService` l'ecoute via le module NestJS et le transforme en un
+`INCIDENT_CREATED` transmis aux webhooks actifs.
+
+Payload minimal transfere vers les webhooks :
+
+- `incidentId`
+- `reason`
+- `status`
+- `timestamp`
+- `cachedClientId`
+- `cachedProviderId`
+- `limitRuleId` si present
+
 ### FallbackService
 
 ```json
@@ -352,17 +368,17 @@ Response :
 
 ## Endpoints Admin
 
-| Methode | Endpoint | Role |
-| --- | --- | --- |
-| `POST` | `/webhooks` | Creer une configuration webhook |
-| `GET` | `/webhooks` | Lister les webhooks |
-| `GET` | `/webhooks/event-types` | Lister les types d'evenements |
-| `GET` | `/webhooks/:id` | Recuperer un webhook |
-| `PATCH` | `/webhooks/:id` | Modifier un webhook |
-| `DELETE` | `/webhooks/:id` | Desactiver logiquement un webhook |
-| `POST` | `/webhooks/:id/test` | Envoyer un payload de test |
-| `POST` | `/webhooks/emit` | Emettre un evenement interne |
-| `GET` | `/webhook-deliveries` | Consulter l'historique des envois |
+| Methode  | Endpoint                | Role                              |
+| -------- | ----------------------- | --------------------------------- |
+| `POST`   | `/webhooks`             | Creer une configuration webhook   |
+| `GET`    | `/webhooks`             | Lister les webhooks               |
+| `GET`    | `/webhooks/event-types` | Lister les types d'evenements     |
+| `GET`    | `/webhooks/:id`         | Recuperer un webhook              |
+| `PATCH`  | `/webhooks/:id`         | Modifier un webhook               |
+| `DELETE` | `/webhooks/:id`         | Desactiver logiquement un webhook |
+| `POST`   | `/webhooks/:id/test`    | Envoyer un payload de test        |
+| `POST`   | `/webhooks/emit`        | Emettre un evenement interne      |
+| `GET`    | `/webhook-deliveries`   | Consulter l'historique des envois |
 
 Les routes statiques `/webhooks/event-types` et `/webhooks/emit` sont declarees
 avant les routes dynamiques `/:id` pour eviter toute capture incorrecte.

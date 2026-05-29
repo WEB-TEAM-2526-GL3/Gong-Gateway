@@ -258,7 +258,7 @@ function showDashboardError(message) {
 async function loadDashboardData() {
     try {
         const me = await apiFetch('/auth/me');
-        const users = await apiFetch('/dashboard/users');
+        const users = await apiFetch('/dashboard/admins');
 
         document.getElementById('me-text').innerHTML = `
       Logged in as <strong>${escapeHtml(me.fullName)} (${escapeHtml(me.email)})</strong>
@@ -350,7 +350,7 @@ function renderUsersTable(users, me) {
             }
 
             try {
-                await apiFetch(`/dashboard/users/${userId}`, {
+                await apiFetch(`/dashboard/admins/${userId}`, {
                     method: 'DELETE',
                     body: JSON.stringify({
                         ceoSecret,

@@ -20,6 +20,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { AuthenticatedUser } from './interfaces/authenticated-user.interface';
 import { CeoSecretService } from './ceo-secret.service';
 import { UsersService } from '../users/users.service';
+import { UserEntity } from '../users/entities/user.entity';
 
 type AuthenticatedRequest = Request & {
   user: AuthenticatedUser;
@@ -44,15 +45,15 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('logout')
-  logout() {
-    return this.authService.logout();
+  @Get('me')
+  getMe(@Req() request: AuthenticatedRequest) {
+    return request.user;
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('me')
-  me(@Req() request: AuthenticatedRequest) {
-    return request.user;
+  @Post('logout')
+  logout() {
+    return this.authService.logout();
   }
 
   @UseGuards(JwtAuthGuard)
@@ -76,13 +77,26 @@ export class AuthController {
 
     return {
       message: 'Admin deactivated successfully',
-      user: {
-        id: deletedUser.id,
-        email: deletedUser.email,
-        fullName: deletedUser.fullName,
-        role: deletedUser.role,
-        status: deletedUser.status,
-      },
+      user: this.toSafeUser(deletedUser),
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('admins')
+  async listUsers() {
+    const users = await this.usersService.findAll();
+    return users.map((user) => this.toSafeUser(user));
+  }
+
+  private toSafeUser(user: UserEntity) {
+    return {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+      status: user.status,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
   }
 }

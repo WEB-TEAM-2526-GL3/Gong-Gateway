@@ -1,15 +1,12 @@
-import { HttpService } from '@nestjs/axios';
 import {
   ConflictException,
   Injectable,
   Logger,
   NotFoundException,
-  OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
-import { firstValueFrom } from 'rxjs';
 import { Repository } from 'typeorm';
 import { CreateMonitoringRuleDto } from './dto/create-monitoring-rule.dto';
 import { UpdateMonitoringRuleDto } from './dto/update-monitoring-rule.dto';
@@ -26,20 +23,18 @@ import type {
   CheckResult,
   MonitoringStatusReport,
 } from './interfaces/check-result.interface';
+import { MetricsService } from '../metrics/metrics.service';
 
 /**
- * Monitoring Controller — Bilel's bounded context.
+ * Monitoring Service — Bilel's bounded context.
  *
  * Owns rule storage + the scheduled detection loop. When a rule fires,
- * it emits a `monitoring.threshold.exceeded` event. The Incident Service
- * (owned by another teammate) is the sole consumer that decides what
- * to do with the signal. This module never touches incident tables.
+ * it emits a `monitoring.threshold.exceeded` event. The incident module
+ * is the consumer that turns that signal into incident records.
  */
 @Injectable()
-export class MonitoringService implements OnModuleInit, OnModuleDestroy {
+export class MonitoringService implements OnModuleInit {
   private readonly logger = new Logger(MonitoringService.name);
-  private readonly prometheusUrl =
-    process.env.PROMETHEUS_URL ?? 'http://localhost:9090';
 
   private checkInterval: ReturnType<typeof setInterval> | null = null;
   private lastReport: MonitoringStatusReport | null = null;
@@ -47,7 +42,7 @@ export class MonitoringService implements OnModuleInit, OnModuleDestroy {
   constructor(
     @InjectRepository(MonitoringRuleEntity)
     private readonly rulesRepo: Repository<MonitoringRuleEntity>,
-    private readonly httpService: HttpService,
+    private readonly metricsService: MetricsService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -69,7 +64,9 @@ export class MonitoringService implements OnModuleInit, OnModuleDestroy {
 
   // ─── Rule management ─────────────────────────────────────────────
 
-  async createRule(dto: CreateMonitoringRuleDto): Promise<MonitoringRuleEntity> {
+  async createRule(
+    dto: CreateMonitoringRuleDto,
+  ): Promise<MonitoringRuleEntity> {
     const existing = await this.rulesRepo.findOneBy({ name: dto.name });
     if (existing) {
       throw new ConflictException(
@@ -192,14 +189,25 @@ export class MonitoringService implements OnModuleInit, OnModuleDestroy {
 
   private async evaluateErrorRate(
     rule: MonitoringRuleEntity,
-    base: Omit<CheckResult, 'triggered' | 'currentValue' | 'threshold' | 'reason'>,
+    base: Omit<
+      CheckResult,
+      'triggered' | 'currentValue' | 'threshold' | 'reason'
+    >,
   ): Promise<CheckResult> {
     const threshold = Number(rule.errorRateThreshold ?? 0.1);
     const svc = rule.serviceName;
     const win = rule.metricWindow;
     const query =
-      'sum(rate(kong_http_status{service="' + svc + '",code=~"4..|5.."}[' + win + '])) /' +
-      ' sum(rate(kong_http_status{service="' + svc + '"}[' + win + ']))';
+      'sum(rate(kong_http_status{service="' +
+      svc +
+      '",code=~"4..|5.."}[' +
+      win +
+      '])) /' +
+      ' sum(rate(kong_http_status{service="' +
+      svc +
+      '"}[' +
+      win +
+      ']))';
     const currentValue = await this.queryPrometheus(query);
     const triggered = currentValue > threshold;
     return {
@@ -221,7 +229,10 @@ export class MonitoringService implements OnModuleInit, OnModuleDestroy {
 
   private async evaluateLatency(
     rule: MonitoringRuleEntity,
-    base: Omit<CheckResult, 'triggered' | 'currentValue' | 'threshold' | 'reason'>,
+    base: Omit<
+      CheckResult,
+      'triggered' | 'currentValue' | 'threshold' | 'reason'
+    >,
   ): Promise<CheckResult> {
     const threshold = rule.latencyThresholdMs ?? 1000;
     const svc = rule.serviceName;
@@ -253,7 +264,10 @@ export class MonitoringService implements OnModuleInit, OnModuleDestroy {
 
   private async evaluateUpstreamHealth(
     rule: MonitoringRuleEntity,
-    base: Omit<CheckResult, 'triggered' | 'currentValue' | 'threshold' | 'reason'>,
+    base: Omit<
+      CheckResult,
+      'triggered' | 'currentValue' | 'threshold' | 'reason'
+    >,
   ): Promise<CheckResult> {
     const query =
       'min(kong_upstream_target_health{upstream="' + rule.serviceName + '"})';
@@ -319,29 +333,6 @@ export class MonitoringService implements OnModuleInit, OnModuleDestroy {
   // ─── Prometheus helper ────────────────────────────────────────────
 
   private async queryPrometheus(query: string): Promise<number> {
-    try {
-      const { data } = await firstValueFrom(
-        this.httpService.get<PrometheusResponse>(
-          this.prometheusUrl + '/api/v1/query',
-          { params: { query } },
-        ),
-      );
-      if (data.status === 'success' && data.data.result.length > 0) {
-        return parseFloat(data.data.result[0].value[1]);
-      }
-      return 0;
-    } catch {
-      return 0;
-    }
+    return this.metricsService.queryPrometheusScalar(query);
   }
-}
-
-interface PrometheusResponse {
-  status: 'success' | 'error';
-  data: {
-    result: Array<{
-      metric: Record<string, string>;
-      value: [number, string];
-    }>;
-  };
 }

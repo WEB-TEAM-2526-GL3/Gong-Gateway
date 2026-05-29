@@ -2,15 +2,15 @@ import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class IncidentActionDto {
   @IsUUID()
-  incidentId: string;
+  incidentId!: string;
 
   @IsString()
   @IsNotEmpty()
-  adminId: string;
+  adminId!: string;
 
   @IsString()
   @IsNotEmpty()
-  adminName: string;
+  adminName!: string;
 
   @IsOptional()
   @IsString()

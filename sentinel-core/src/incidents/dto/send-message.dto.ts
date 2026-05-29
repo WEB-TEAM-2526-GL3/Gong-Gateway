@@ -2,17 +2,17 @@ import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class SendMessageDto {
   @IsUUID()
-  incidentId: string;
+  incidentId!: string;
 
   @IsString()
   @IsNotEmpty()
-  adminId: string;
+  adminId!: string;
 
   @IsString()
   @IsNotEmpty()
-  adminName: string;
+  adminName!: string;
 
   @IsString()
   @IsNotEmpty()
-  message: string;
+  message!: string;
 }

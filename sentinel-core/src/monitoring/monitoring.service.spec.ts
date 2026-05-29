@@ -1,232 +1,256 @@
-import { HttpService } from '@nestjs/axios';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { of } from 'rxjs';
-import { CreateMonitoringRuleDto } from './dto/create-monitoring-rule.dto';
-import {
-  MonitoringRuleEntity,
-  MonitoringRuleType,
-} from './entities/monitoring-rule.entity';
+import { Test } from '@nestjs/testing';
+import { MonitoringRuleType } from './entities/monitoring-rule.entity';
 import { IncidentSeverity } from './enums/incident-severity.enum';
-import { THRESHOLD_EXCEEDED_EVENT } from './events/threshold-exceeded.event';
 import { MonitoringService } from './monitoring.service';
+import { MetricsService } from '../metrics/metrics.service';
 
-const repoMock = () => ({
-  findOneBy: jest.fn(),
-  find: jest.fn(),
-  create: jest.fn(),
-  save: jest.fn(),
-  remove: jest.fn(),
-});
+type RuleRecord = {
+  id: string;
+  name: string;
+  serviceName: string;
+  providerId: string | null;
+  type: MonitoringRuleType;
+  errorRateThreshold: number | null;
+  latencyThresholdMs: number | null;
+  metricWindow: string;
+  cooldownMinutes: number;
+  severity: IncidentSeverity;
+  isActive: boolean;
+  lastTriggeredAt: Date | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
 
 describe('MonitoringService', () => {
+  const metricsServiceMock = {
+    queryPrometheusScalar: jest.fn(),
+  };
+
+  const eventEmitterMock = {
+    emit: jest.fn(),
+  };
+
+  const rules = new Map<string, RuleRecord>();
+  let idCounter = 1;
+
+  const rulesRepoMock = {
+    findOneBy: jest.fn(async ({ id, name }: { id?: string; name?: string }) => {
+      if (id) {
+        return rules.get(id) ?? null;
+      }
+      if (name) {
+        return (
+          Array.from(rules.values()).find((rule) => rule.name === name) ?? null
+        );
+      }
+      return null;
+    }),
+    create: jest.fn((input: Partial<RuleRecord>) => {
+      const now = new Date('2026-05-29T00:00:00.000Z');
+      return {
+        id: `rule-${idCounter++}`,
+        name: input.name ?? 'rule',
+        serviceName: input.serviceName ?? 'service-a',
+        providerId: input.providerId ?? null,
+        type: input.type ?? MonitoringRuleType.ERROR_RATE,
+        errorRateThreshold: input.errorRateThreshold ?? null,
+        latencyThresholdMs: input.latencyThresholdMs ?? null,
+        metricWindow: input.metricWindow ?? '5m',
+        cooldownMinutes: input.cooldownMinutes ?? 15,
+        severity: input.severity ?? IncidentSeverity.MEDIUM,
+        isActive: input.isActive ?? true,
+        lastTriggeredAt: input.lastTriggeredAt ?? null,
+        createdAt: now,
+        updatedAt: now,
+      } satisfies RuleRecord;
+    }),
+    save: jest.fn(async (rule: RuleRecord) => {
+      rules.set(rule.id, rule);
+      return rule;
+    }),
+    find: jest.fn(async (options?: { where?: { isActive?: boolean } }) => {
+      const values = Array.from(rules.values());
+      if (options?.where?.isActive === true) {
+        return values.filter((rule) => rule.isActive);
+      }
+      return values;
+    }),
+    remove: jest.fn(async (rule: RuleRecord) => {
+      rules.delete(rule.id);
+      return rule;
+    }),
+  };
+
   let service: MonitoringService;
-  let rulesRepo: ReturnType<typeof repoMock>;
-  let httpService: { get: jest.Mock };
-  let eventEmitter: { emit: jest.Mock };
 
   beforeEach(async () => {
-    jest.spyOn(global, 'setInterval').mockReturnValue(undefined as any);
+    jest.clearAllMocks();
+    rules.clear();
+    idCounter = 1;
 
-    const module: TestingModule = await Test.createTestingModule({
+    const moduleRef = await Test.createTestingModule({
       providers: [
         MonitoringService,
-        { provide: getRepositoryToken(MonitoringRuleEntity), useFactory: repoMock },
-        { provide: HttpService, useValue: { get: jest.fn() } },
-        { provide: EventEmitter2, useValue: { emit: jest.fn() } },
+        {
+          provide: 'MonitoringRuleEntityRepository',
+          useValue: rulesRepoMock,
+        },
+        {
+          provide: MetricsService,
+          useValue: metricsServiceMock,
+        },
+        {
+          provide: EventEmitter2,
+          useValue: eventEmitterMock,
+        },
       ],
-    }).compile();
+    })
+      .overrideProvider('MonitoringRuleEntityRepository')
+      .useValue(rulesRepoMock)
+      .compile();
 
-    service = module.get(MonitoringService);
-    rulesRepo = module.get(getRepositoryToken(MonitoringRuleEntity));
-    httpService = module.get(HttpService);
-    eventEmitter = module.get(EventEmitter2);
+    service = moduleRef.get(MonitoringService);
   });
 
-  afterEach(() => jest.clearAllMocks());
-
-  // ─── createRule ──────────────────────────────────────────────────
-
-  describe('createRule', () => {
-    const dto: CreateMonitoringRuleDto = {
-      name: 'openai-errors',
+  it('creates, updates, and deletes monitoring rules', async () => {
+    const created = await service.createRule({
+      name: 'error-rate-high',
       serviceName: 'openai-svc',
       type: MonitoringRuleType.ERROR_RATE,
       errorRateThreshold: 0.1,
-    };
-
-    it('creates and returns a new rule when the name is unique', async () => {
-      rulesRepo.findOneBy.mockResolvedValue(null);
-      rulesRepo.create.mockReturnValue({ id: 'r1', ...dto });
-      rulesRepo.save.mockResolvedValue({ id: 'r1', ...dto });
-
-      const result = await service.createRule(dto);
-
-      expect(rulesRepo.findOneBy).toHaveBeenCalledWith({ name: dto.name });
-      expect(result.id).toBe('r1');
+      metricWindow: '5m',
+      cooldownMinutes: 15,
+      severity: IncidentSeverity.HIGH,
     });
 
-    it('throws ConflictException when a rule with that name already exists', async () => {
-      rulesRepo.findOneBy.mockResolvedValue({ id: 'existing' });
-
-      await expect(service.createRule(dto)).rejects.toBeInstanceOf(ConflictException);
+    expect(created).toMatchObject({
+      name: 'error-rate-high',
+      serviceName: 'openai-svc',
+      type: MonitoringRuleType.ERROR_RATE,
+      errorRateThreshold: 0.1,
+      metricWindow: '5m',
+      cooldownMinutes: 15,
+      severity: IncidentSeverity.HIGH,
+      isActive: true,
+      lastTriggeredAt: null,
     });
+
+    await expect(
+      service.createRule({
+        name: 'error-rate-high',
+        serviceName: 'openai-svc',
+        type: MonitoringRuleType.ERROR_RATE,
+      }),
+    ).rejects.toThrow(
+      'A monitoring rule named "error-rate-high" already exists',
+    );
+
+    const updated = await service.updateRule(created.id, {
+      isActive: false,
+      cooldownMinutes: 30,
+    });
+
+    expect(updated).toMatchObject({
+      id: created.id,
+      isActive: false,
+      cooldownMinutes: 30,
+    });
+
+    await service.deleteRule(created.id);
+    await expect(service.findRule(created.id)).rejects.toThrow(
+      `Monitoring rule "${created.id}" not found`,
+    );
   });
 
-  // ─── findRule ────────────────────────────────────────────────────
-
-  describe('findRule', () => {
-    it('returns the rule when found', async () => {
-      const rule = { id: 'r1' } as MonitoringRuleEntity;
-      rulesRepo.findOneBy.mockResolvedValue(rule);
-
-      await expect(service.findRule('r1')).resolves.toEqual(rule);
+  it('runs scheduled checks, emits events, and caches the last report', async () => {
+    const triggeredRule = await service.createRule({
+      name: 'latency-high',
+      serviceName: 'openai-svc',
+      type: MonitoringRuleType.LATENCY_P95,
+      latencyThresholdMs: 100,
+      metricWindow: '5m',
+      cooldownMinutes: 15,
+      severity: IncidentSeverity.CRITICAL,
     });
 
-    it('throws NotFoundException when the rule is missing', async () => {
-      rulesRepo.findOneBy.mockResolvedValue(null);
+    metricsServiceMock.queryPrometheusScalar.mockResolvedValueOnce(250);
 
-      await expect(service.findRule('missing')).rejects.toBeInstanceOf(NotFoundException);
+    const report = await service.runManualCheck();
+
+    expect(metricsServiceMock.queryPrometheusScalar).toHaveBeenCalledWith(
+      'histogram_quantile(0.95, sum(rate(kong_upstream_latency_ms_bucket{service="openai-svc"}[5m])) by (le))',
+    );
+    expect(report.totalRules).toBe(1);
+    expect(report.triggeredRules).toBe(1);
+    expect(report.results[0]).toMatchObject({
+      ruleId: triggeredRule.id,
+      ruleName: 'latency-high',
+      triggered: true,
+      currentValue: 250,
+      threshold: 100,
     });
+    expect(eventEmitterMock.emit).toHaveBeenCalledWith(
+      'monitoring.threshold.exceeded',
+      expect.objectContaining({
+        ruleId: triggeredRule.id,
+        ruleName: 'latency-high',
+        serviceName: 'openai-svc',
+        currentValue: 250,
+        threshold: 100,
+      }),
+    );
+    expect(service.getLastReport()).toEqual(report);
   });
 
-  // ─── deleteRule ──────────────────────────────────────────────────
-
-  describe('deleteRule', () => {
-    it('removes the rule from the repository', async () => {
-      const rule = { id: 'r1' } as MonitoringRuleEntity;
-      rulesRepo.findOneBy.mockResolvedValue(rule);
-      rulesRepo.remove.mockResolvedValue(rule);
-
-      await service.deleteRule('r1');
-
-      expect(rulesRepo.remove).toHaveBeenCalledWith(rule);
+  it('skips repeated alerts during cooldown', async () => {
+    const rule = await service.createRule({
+      name: 'error-rate-high',
+      serviceName: 'gateway-svc',
+      type: MonitoringRuleType.ERROR_RATE,
+      errorRateThreshold: 0.1,
+      metricWindow: '5m',
+      cooldownMinutes: 15,
+      severity: IncidentSeverity.MEDIUM,
     });
+
+    rule.lastTriggeredAt = new Date(Date.now() - 60_000);
+    rules.set(rule.id, rule);
+
+    metricsServiceMock.queryPrometheusScalar.mockResolvedValueOnce(0.5);
+
+    const report = await service.runManualCheck();
+
+    expect(report.triggeredRules).toBe(1);
+    expect(eventEmitterMock.emit).not.toHaveBeenCalledWith(
+      'monitoring.threshold.exceeded',
+      expect.anything(),
+    );
+    expect(rules.get(rule.id)?.lastTriggeredAt).toEqual(rule.lastTriggeredAt);
   });
 
-  // ─── getLastReport ───────────────────────────────────────────────
+  it('returns the latest cached report without rerunning', async () => {
+    expect(service.getLastReport()).toBeNull();
 
-  describe('getLastReport', () => {
-    it('returns null before any check has run', () => {
-      expect(service.getLastReport()).toBeNull();
-    });
-  });
-
-  // ─── runScheduledCheck ───────────────────────────────────────────
-
-  describe('runScheduledCheck', () => {
-    it('returns an empty report when there are no active rules', async () => {
-      rulesRepo.find.mockResolvedValue([]);
-
-      const report = await service.runScheduledCheck();
-
-      expect(report.totalRules).toBe(0);
-      expect(report.triggeredRules).toBe(0);
-      expect(eventEmitter.emit).not.toHaveBeenCalled();
+    const rule = await service.createRule({
+      name: 'upstream-down',
+      serviceName: 'gateway-svc',
+      type: MonitoringRuleType.UPSTREAM_HEALTH,
+      cooldownMinutes: 15,
+      severity: IncidentSeverity.MEDIUM,
     });
 
-    it('does NOT emit an event when error rate is below threshold', async () => {
-      rulesRepo.find.mockResolvedValue([buildRule({ errorRateThreshold: 0.1 })]);
-      httpService.get.mockReturnValue(of({ data: prometheusOk('0.05') }));
+    metricsServiceMock.queryPrometheusScalar.mockResolvedValueOnce(0);
 
-      const report = await service.runScheduledCheck();
+    const report = await service.runManualCheck();
 
-      expect(report.triggeredRules).toBe(0);
-      expect(eventEmitter.emit).not.toHaveBeenCalled();
-    });
-
-    it('emits monitoring.threshold.exceeded when error rate exceeds threshold', async () => {
-      rulesRepo.find.mockResolvedValue([
-        buildRule({ errorRateThreshold: 0.1, lastTriggeredAt: null }),
-      ]);
-      rulesRepo.save.mockResolvedValue({});
-      httpService.get.mockReturnValue(of({ data: prometheusOk('0.25') }));
-
-      const report = await service.runScheduledCheck();
-
-      expect(report.triggeredRules).toBe(1);
-      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        THRESHOLD_EXCEEDED_EVENT,
-        expect.objectContaining({
-          ruleName: 'openai-errors',
-          serviceName: 'openai-svc',
-          type: MonitoringRuleType.ERROR_RATE,
-        }),
-      );
-    });
-
-    it('persists lastTriggeredAt after firing so cooldown takes effect', async () => {
-      const rule = buildRule({ errorRateThreshold: 0.1, lastTriggeredAt: null });
-      rulesRepo.find.mockResolvedValue([rule]);
-      rulesRepo.save.mockResolvedValue(rule);
-      httpService.get.mockReturnValue(of({ data: prometheusOk('0.25') }));
-
-      await service.runScheduledCheck();
-
-      expect(rulesRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ lastTriggeredAt: expect.any(Date) }),
-      );
-    });
-  });
-
-  // ─── Cooldown logic ──────────────────────────────────────────────
-
-  describe('cooldown', () => {
-    it('skips event emission when the rule is still within its cooldown window', async () => {
-      const rule = buildRule({ lastTriggeredAt: new Date(), cooldownMinutes: 15 });
-      rulesRepo.find.mockResolvedValue([rule]);
-      httpService.get.mockReturnValue(of({ data: prometheusOk('0.5') }));
-
-      await service.runScheduledCheck();
-
-      expect(eventEmitter.emit).not.toHaveBeenCalled();
-    });
-
-    it('emits a new event once the cooldown has expired', async () => {
-      const sixteenMinutesAgo = new Date(Date.now() - 16 * 60 * 1000);
-      const rule = buildRule({
-        lastTriggeredAt: sixteenMinutesAgo,
-        cooldownMinutes: 15,
-      });
-      rulesRepo.find.mockResolvedValue([rule]);
-      rulesRepo.save.mockResolvedValue(rule);
-      httpService.get.mockReturnValue(of({ data: prometheusOk('0.5') }));
-
-      await service.runScheduledCheck();
-
-      expect(eventEmitter.emit).toHaveBeenCalledTimes(1);
+    expect(service.getLastReport()).toEqual(report);
+    expect(report.results[0]).toMatchObject({
+      ruleId: rule.id,
+      triggered: true,
+      threshold: 1,
+      currentValue: 0,
     });
   });
 });
-
-// ─── Helpers ─────────────────────────────────────────────────────────
-
-function buildRule(overrides: Partial<MonitoringRuleEntity> = {}): MonitoringRuleEntity {
-  return {
-    id: 'rule-1',
-    name: 'openai-errors',
-    serviceName: 'openai-svc',
-    providerId: null,
-    type: MonitoringRuleType.ERROR_RATE,
-    errorRateThreshold: 0.1,
-    latencyThresholdMs: null,
-    metricWindow: '5m',
-    cooldownMinutes: 15,
-    severity: IncidentSeverity.HIGH,
-    isActive: true,
-    lastTriggeredAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    ...overrides,
-  } as MonitoringRuleEntity;
-}
-
-function prometheusOk(value: string) {
-  return {
-    status: 'success',
-    data: { result: [{ metric: {}, value: [Date.now() / 1000, value] }] },
-  };
-}

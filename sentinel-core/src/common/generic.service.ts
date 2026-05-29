@@ -20,11 +20,11 @@ export class GenericService<
     });
   }
 
-  create(addDto: T): Promise<T> {
+  create(addDto: DeepPartial<T>): Promise<T> {
     return this.genericRepository.save(addDto);
   }
 
-  createMany(addDtos: T[]): Promise<T[]> {
+  createMany(addDtos: DeepPartial<T>[]): Promise<T[]> {
     return this.genericRepository.save(addDtos);
   }
 

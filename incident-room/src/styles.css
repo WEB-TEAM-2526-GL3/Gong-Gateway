@@ -302,23 +302,7 @@ time,
   padding: 14px 18px;
 }
 
-.fallback-box {
-  border-top: 1px solid #e3ebf2;
-  padding: 14px 18px;
-}
-
-.fallback-box summary {
-  cursor: pointer;
-  font-weight: 900;
-}
-
-.fallback-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
-  align-items: end;
-  gap: 10px;
-  margin-top: 12px;
-}
+.fallback-box { display: none; }
 
 .empty {
   border: 1px dashed #bdcbd7;

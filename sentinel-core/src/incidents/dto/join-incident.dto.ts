@@ -2,13 +2,13 @@ import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class JoinIncidentDto {
   @IsUUID()
-  incidentId: string;
+  incidentId!: string;
 
   @IsString()
   @IsNotEmpty()
-  adminId: string;
+  adminId!: string;
 
   @IsString()
   @IsNotEmpty()
-  adminName: string;
+  adminName!: string;
 }

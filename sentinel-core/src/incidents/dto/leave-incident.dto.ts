@@ -2,9 +2,9 @@ import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class LeaveIncidentDto {
   @IsUUID()
-  incidentId: string;
+  incidentId!: string;
 
   @IsString()
   @IsNotEmpty()
-  adminId: string;
+  adminId!: string;
 }
