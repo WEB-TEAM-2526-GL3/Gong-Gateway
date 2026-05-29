@@ -1,71 +1,71 @@
 # Sentinel Gateway
 
-Sentinel Gateway est une plateforme de pilotage et de supervision pour une API Gateway. Le projet rassemble Kong, Prometheus, un backend NestJS, une interface GraphQL, un dashboard unifié et une salle d'incident temps réel.
+Sentinel Gateway is a control and observability platform for an API Gateway environment. It brings together Kong, Prometheus, a NestJS backend, a GraphQL API, a unified dashboard, and a realtime incident room.
 
-L'objectif est de donner à une équipe une vue claire sur le trafic, les services exposés, les incidents, les alertes de monitoring, les webhooks et les intégrations externes, sans multiplier les outils ou les interfaces.
+The goal is to give operators a clear view of traffic, exposed services, incidents, monitoring alerts, webhooks, and external integrations without forcing them to jump between many tools.
 
-## Vue D'ensemble
+## Overview
 
-Le projet est organisé autour de deux applications principales :
+The repository is organized around two main applications:
 
-| Dossier | Rôle |
+| Folder | Purpose |
 | --- | --- |
-| `sentinel-core` | Backend NestJS, API REST, GraphQL, SSE metrics, Socket.IO incident room, intégrations Kong/Prometheus/Webhooks/Messenger. |
-| `incident-room` | Frontend React/Vite dédié à la collaboration temps réel autour des incidents. |
+| `sentinel-core` | NestJS backend, REST API, GraphQL API, SSE metrics, Socket.IO incident room gateway, and Kong/Prometheus/Webhooks/Messenger integrations. |
+| `incident-room` | React/Vite frontend dedicated to realtime incident collaboration. |
 
-L'infrastructure locale est décrite dans `docker-compose.yml` :
+The local infrastructure is described in `docker-compose.yml`:
 
-| Service | Port | Usage |
+| Service | Port | Purpose |
 | --- | ---: | --- |
-| Sentinel Core | `3000` | API backend, dashboard unifié, GraphQL, SSE. |
-| Incident Room dev | `5173` | Frontend React/Vite de la salle d'incident. |
-| Kong Proxy | `8000` | Point d'entrée du trafic applicatif. |
-| Kong Admin API | `8001` | Administration Kong utilisée par Sentinel. |
-| Prometheus | `9090` | Collecte et requêtage des métriques Kong. |
-| Sentinel PostgreSQL | `5433` | Base de données Sentinel. |
-| Kong PostgreSQL | `5432` | Base de données Kong. |
+| Sentinel Core | `3000` | Backend API, unified dashboard, GraphQL, SSE. |
+| Incident Room dev | `5173` | React/Vite frontend for the incident room. |
+| Kong Proxy | `8000` | Entry point for proxied application traffic. |
+| Kong Admin API | `8001` | Kong administration API used by Sentinel. |
+| Prometheus | `9090` | Kong metrics collection and querying. |
+| Sentinel PostgreSQL | `5433` | Sentinel database. |
+| Kong PostgreSQL | `5432` | Kong database. |
 
-## Fonctionnalités Principales
+## Main Features
 
-- Authentification admin avec JWT.
-- Gestion des admins et activation/désactivation de comptes.
-- Pilotage Kong : services, routes, consumers, clés API et plugins.
-- Incidents : création, listing, historique et statuts.
-- Incident Room : présence, chat, acknowledge, resolve et flux temps réel via Socket.IO.
-- Monitoring : règles d'alerte, checks manuels, incidents générés depuis les seuils.
-- Metrics : collecte Prometheus, cache backend, SSE temps réel et courbes live dans le dashboard.
-- Webhooks : configuration, delivery tracking et formats Slack/Discord/générique.
-- Messenger : réception et consultation des événements entrants.
-- GraphQL : façade unifiée pour simplifier le développement frontend.
+- Admin authentication with JWT.
+- Admin account management and deactivation.
+- Kong management: services, routes, consumers, API keys, and plugins.
+- Incident management: creation, listing, history, and statuses.
+- Incident Room: presence, chat, acknowledge, resolve, and realtime updates through Socket.IO.
+- Monitoring: alert rules, manual checks, and incident generation from thresholds.
+- Metrics: Prometheus collection, backend cache, realtime SSE, and live dashboard charts.
+- Webhooks: configuration, delivery tracking, and Slack/Discord/generic formatting.
+- Messenger: inbound event ingestion and browsing.
+- GraphQL: unified API facade to simplify frontend development.
 
 ## Interfaces
 
-Après démarrage du backend :
+After starting the backend:
 
 | Interface | URL |
 | --- | --- |
-| Dashboard unifié | `http://localhost:3000/dashboard` |
+| Unified dashboard | `http://localhost:3000/dashboard` |
 | Apollo GraphQL | `http://localhost:3000/graphql` |
 | Metrics SSE | `http://localhost:3000/metrics/sse` |
 | REST incidents | `http://localhost:3000/incidents` |
 | Incident Room dev | `http://localhost:5173` |
 
-Le dashboard unifié utilise GraphQL pour les données et les mutations classiques. Les métriques live utilisent SSE. La salle d'incident utilise Socket.IO.
+The unified dashboard uses GraphQL for standard data loading and mutations. Live metrics use SSE. The incident room uses Socket.IO.
 
-## Démarrage Local
+## Local Setup
 
-Prérequis :
+Requirements:
 
-- Docker et Docker Compose.
-- Node.js et npm.
+- Docker and Docker Compose.
+- Node.js and npm.
 
-Installer et lancer l'infrastructure :
+Start the infrastructure:
 
 ```powershell
 docker compose up -d
 ```
 
-Lancer le backend :
+Start the backend:
 
 ```powershell
 cd sentinel-core
@@ -73,13 +73,13 @@ npm install
 npm run start:dev
 ```
 
-Ouvrir le dashboard :
+Open the dashboard:
 
 ```text
 http://localhost:3000/dashboard
 ```
 
-Lancer la salle d'incident en mode développement :
+Start the incident room in development mode:
 
 ```powershell
 cd incident-room
@@ -87,19 +87,19 @@ npm install
 npm run dev
 ```
 
-Puis ouvrir :
+Then open:
 
 ```text
 http://localhost:5173
 ```
 
-Le bouton "Open Incident Room" du dashboard essaie d'abord d'ouvrir une version embarquée sous `/incident-room/`, puis bascule vers `localhost:5173` si elle n'est pas disponible.
+The dashboard's "Open Incident Room" button first tries to open an embedded build under `/incident-room/`, then falls back to `localhost:5173` when the embedded build is not available.
 
 ## Configuration
 
-Le backend lit sa configuration depuis `sentinel-core/.env`.
+The backend reads its configuration from `sentinel-core/.env`.
 
-Variables importantes :
+Important variables:
 
 ```env
 PORT=3000
@@ -116,52 +116,52 @@ JWT_SECRET=change_me
 CEO_SECRET=change_this_ceo_secret
 ```
 
-Les valeurs locales sont prévues pour le développement. Les secrets doivent être remplacés avant tout usage hors environnement local.
+The default values are intended for local development. Secrets must be replaced before using the system outside a local environment.
 
 ## GraphQL
 
-GraphQL est exposé sur :
+GraphQL is exposed at:
 
 ```text
 POST /graphql
 ```
 
-Apollo Sandbox est disponible dans le navigateur :
+Apollo Sandbox is available in the browser:
 
 ```text
 http://localhost:3000/graphql
 ```
 
-Le frontend envoie le token JWT dans l'en-tête :
+The frontend sends the JWT token with:
 
 ```http
 Authorization: Bearer <accessToken>
 ```
 
-GraphQL sert de façade unique pour :
+GraphQL acts as a unified facade for:
 
-- auth et admins ;
-- gateway services/routes/consumers ;
-- incidents ;
-- monitoring ;
-- metrics ;
-- webhooks ;
+- auth and admins;
+- gateway services/routes/consumers;
+- incidents;
+- monitoring;
+- metrics;
+- webhooks;
 - messenger.
 
 ## Realtime
 
-Le projet utilise deux mécanismes temps réel :
+The project uses two realtime mechanisms:
 
-| Mécanisme | Usage |
+| Mechanism | Purpose |
 | --- | --- |
-| SSE `/metrics/sse` | Flux des métriques Prometheus et changements de santé. |
-| Socket.IO `/incident-room` | Collaboration autour des incidents et nouveau flux d'incidents. |
+| SSE `/metrics/sse` | Prometheus metrics stream and health changes. |
+| Socket.IO `/incident-room` | Incident collaboration and realtime incident feed. |
 
-Les métriques SSE alimentent les cartes et les courbes live du dashboard. Socket.IO permet à l'Incident Room de recevoir les nouveaux incidents sans bouton refresh.
+SSE metrics feed the dashboard cards and live charts. Socket.IO lets the Incident Room receive new incidents without a refresh button.
 
-## Tests Et Validation
+## Tests And Validation
 
-Backend :
+Backend:
 
 ```powershell
 cd sentinel-core
@@ -169,30 +169,30 @@ npm test
 npx tsc --noEmit -p tsconfig.build.json
 ```
 
-Tests ciblés utiles :
+Useful focused tests:
 
 ```powershell
 npm test -- sentinel-graphql.resolver --runInBand
 npm test -- prometheus.service metrics.service --runInBand
 ```
 
-Frontend Incident Room :
+Incident Room frontend:
 
 ```powershell
 cd incident-room
 npm run build
 ```
 
-Dashboard statique :
+Static dashboard:
 
 ```powershell
 cd sentinel-core
 node --check public\app.js
 ```
 
-## Documentation Des Modules
+## Module Documentation
 
-Chaque module backend possède une documentation dédiée :
+Each backend module has dedicated documentation:
 
 - `sentinel-core/src/auth/README.md`
 - `sentinel-core/src/users/README.md`
@@ -203,14 +203,14 @@ Chaque module backend possède une documentation dédiée :
 - `sentinel-core/src/webhooks/README.md`
 - `sentinel-core/src/messenger/README.md`
 
-Des notes supplémentaires sont disponibles dans `sentinel-core/docs/`.
+Additional notes are available under `sentinel-core/docs/`.
 
-## Notes De Développement
+## Development Notes
 
-- `sentinel-core` est l'application centrale et doit rester propriétaire de la logique métier.
-- GraphQL simplifie la consommation côté frontend, mais ne remplace pas les flux temps réel.
-- Les événements backend restent découplés des messages frontend.
-- Kong reçoit le trafic réel sur `localhost:8000`.
-- Sentinel administre Kong via `localhost:8001`.
-- Prometheus collecte les métriques Kong depuis `/metrics`.
+- `sentinel-core` is the central application and should remain the owner of business logic.
+- GraphQL simplifies frontend consumption, but it does not replace realtime streams.
+- Backend events stay decoupled from frontend messages.
+- Kong receives real traffic on `localhost:8000`.
+- Sentinel administers Kong through `localhost:8001`.
+- Prometheus collects Kong metrics from `/metrics`.
 
