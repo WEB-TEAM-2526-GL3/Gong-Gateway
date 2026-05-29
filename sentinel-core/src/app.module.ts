@@ -11,6 +11,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { IncidentsModule } from './incidents/incidents.module';
+import { SentinelGraphqlModule } from './graphql/sentinel-graphql.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { IncidentsModule } from './incidents/incidents.module';
     MonitoringModule,
     WebhooksModule,
     MetricsModule,
+    SentinelGraphqlModule,
   ],
   controllers: [AppController],
   providers: [AppService],
