@@ -2,108 +2,147 @@
 @sentinel = http://localhost:3000
 @kongProxy = http://localhost:8000
 
+
+
+### ============================================================
+### AUTH VARIABLES
+### ============================================================
+
+@ceoSecret = ceo_ceo
+
+@adminEmail = admin@sentinel.com
+@adminFullName = Sentinel Admin
+@adminPassword = admin123
+
+@secondAdminEmail = second.admin@sentinel.com
+@secondAdminFullName = Second Sentinel Admin
+@secondAdminPassword = admin456
+
+
+
+
+### ============================================================
+### AUTH TESTS
+### ============================================================
+
+### 0.1) Register first admin
+### Run this once. If the user already exists, skip this and run login.
+# @name registerMainAdmin
+POST {{sentinel}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "fullName": "{{adminFullName}}",
+  "password": "{{adminPassword}}",
+  "ceoSecret": "{{ceoSecret}}"
+}
+
+
+
+### 0.2) Login main admin
+# @name loginMainAdmin
+POST {{sentinel}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+
+### ============================================================
+### GATEWAY (updated)
+### ============================================================
+
 @openrouterService = openrouter-service
 @openrouterRoute = openrouter-route
-@openrouterKey = ************************************************
+@openrouterKey = *********
 
 @groqService = groq-service
 @groqRoute = groq-route
-@groqKey = **************************************************
+@groqKey = *********
 
 
-### 0) Check Kong through Sentinel controller
-GET {{sentinel}}/kong/health
-
-
-
-### 1) Create OpenRouter service + route through Sentinel controller
-POST {{sentinel}}/kong/services
+### 1) Create OpenRouter service through Sentinel gateway controller
+POST {{sentinel}}/gateway/services
+Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 Content-Type: application/json
 
 {
   "name": "{{openrouterService}}",
-  "url": "https://openrouter.ai/api",
-  "route": {
-    "name": "{{openrouterRoute}}",
-    "paths": ["/openrouter"],
-    "stripPath": true,
-    "methods": ["GET", "POST", "OPTIONS"]
-  }
+  "url": "https://openrouter.ai/api"
 }
 
 
-### 2) Add OpenRouter upstream headers through Sentinel controller
-### This creates a Kong request-transformer plugin on the OpenRouter service.
-POST {{sentinel}}/kong/services/{{openrouterService}}/plugins
+### 1.1) Add OpenRouter API key to the service
+POST {{sentinel}}/gateway/services/{{openrouterService}}/api-key
+Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 Content-Type: application/json
 
 {
-  "name": "request-transformer",
-  "config": {
-    "add": {
-      "headers": [
-        "Authorization:Bearer {{openrouterKey}}",
-        "HTTP-Referer:http://localhost:3000",
-        "X-OpenRouter-Title:Sentinel Gateway"
-      ]
-    }
-  }
+  "apiKey": "{{openrouterKey}}"
 }
 
 
-### 3) Create Groq service + route through Sentinel controller
-POST {{sentinel}}/kong/services
+### 2) Create OpenRouter route through Sentinel gateway controller
+POST {{sentinel}}/gateway/services/{{openrouterService}}/routes
+Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "name": "{{openrouterRoute}}",
+  "paths": ["/openrouter"],
+  "stripPath": true,
+  "methods": ["GET", "POST", "OPTIONS"]
+}
+
+
+### 3) Create Groq service through Sentinel gateway controller
+POST {{sentinel}}/gateway/services
+Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 Content-Type: application/json
 
 {
   "name": "{{groqService}}",
-  "url": "https://api.groq.com/openai",
-  "route": {
-    "name": "{{groqRoute}}",
-    "paths": ["/groq"],
-    "stripPath": true,
-    "methods": ["GET", "POST", "OPTIONS"]
-  }
+  "url": "https://api.groq.com/openai"
 }
 
 
-### 4) Add Groq upstream Authorization header through Sentinel controller
-### This creates a Kong request-transformer plugin on the Groq service.
-POST {{sentinel}}/kong/services/{{groqService}}/plugins
+### 3.1) Add Groq API key to the service
+POST {{sentinel}}/gateway/services/{{groqService}}/api-key
+Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 Content-Type: application/json
 
 {
-  "name": "request-transformer",
-  "config": {
-    "add": {
-      "headers": [
-        "Authorization:Bearer {{groqKey}}"
-      ]
-    }
-  }
+  "apiKey": "{{groqKey}}"
 }
 
 
-### 5) Verify services through Sentinel controller
-GET {{sentinel}}/kong/services
+### 4) Create Groq route through Sentinel gateway controller
+POST {{sentinel}}/gateway/services/{{groqService}}/routes
+Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "name": "{{groqRoute}}",
+  "paths": ["/groq"],
+  "stripPath": true,
+  "methods": ["GET", "POST", "OPTIONS"]
+}
 
 
-### 6) Verify routes through Sentinel controller
-GET {{sentinel}}/kong/routes
+### 5) Verify services through Sentinel gateway controller
+GET {{sentinel}}/gateway/services
+Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 
 
-### 7) Verify OpenRouter plugins through Sentinel controller
-GET {{sentinel}}/kong/services/{{openrouterService}}/plugins
+### 6) Verify routes through Sentinel gateway controller
+GET {{sentinel}}/gateway/routes
+Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 
 
-### 8) Verify Groq plugins through Sentinel controller
-GET {{sentinel}}/kong/services/{{groqService}}/plugins
-
-### DELETE http://localhost:8001/plugins/:pluginId
-DELETE {{sentinel}}/kong/plugins/************************
-
-
-### 9) Optional: test OpenRouter route through Kong proxy, not Admin API
+### 7) Optional: test OpenRouter route through Kong proxy (unchanged)
 ### With service url https://openrouter.ai/api and stripPath=true:
 ### /openrouter/v1/chat/completions -> https://openrouter.ai/api/v1/chat/completions
 POST {{kongProxy}}/openrouter/v1/chat/completions
@@ -120,7 +159,7 @@ Content-Type: application/json
 }
 
 
-### 10) Optional: test Groq route through Kong proxy, not Admin API
+### 8) Optional: test Groq route through Kong proxy (unchanged)
 ### With service url https://api.groq.com/openai and stripPath=true:
 ### /groq/v1/chat/completions -> https://api.groq.com/openai/v1/chat/completions
 POST {{kongProxy}}/groq/v1/chat/completions
@@ -137,8 +176,9 @@ Content-Type: application/json
 }
 
 
-### 11) Optional: update OpenRouter service URL through Sentinel controller
-PATCH {{sentinel}}/kong/services/{{openrouterService}}
+### 9) Optional: update OpenRouter service URL through Sentinel gateway controller
+PATCH {{sentinel}}/gateway/services/{{openrouterService}}
+Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 Content-Type: application/json
 
 {
@@ -146,20 +186,14 @@ Content-Type: application/json
 }
 
 
-### 12) Optional: update Groq service URL through Sentinel controller
-PATCH {{sentinel}}/kong/services/{{groqService}}
+### 10) Optional: update Groq service URL through Sentinel gateway controller
+PATCH {{sentinel}}/gateway/services/{{groqService}}
+Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 Content-Type: application/json
 
 {
   "url": "https://api.groq.com/openai"
 }
-
-
-
-
-
-
-
 
 
 ### ============================================================
@@ -210,7 +244,6 @@ Content-Type: application/json
 
 
 
-
 ### ============================================================
 POST {{kongProxy}}/groq/v1/chat/completions
 Content-Type: application/json
@@ -246,154 +279,21 @@ Content-Type: application/json
 ### DELETE TESTS
 ### ============================================================
 
-### 17) Delete OpenRouter route through Sentinel controller
-DELETE {{sentinel}}/kong/routes/{{openrouterRoute}}
-
-
-### 18) Delete Groq route through Sentinel controller
-DELETE {{sentinel}}/kong/routes/{{groqRoute}}
-
-
-### 19) Delete OpenRouter service through Sentinel controller
-DELETE {{sentinel}}/kong/services/{{openrouterService}}
-
-
-### 20) Delete Groq service through Sentinel controller
-DELETE {{sentinel}}/kong/services/{{groqService}}
-
-
-
-
-
-
-
-
-
-### ============================================================
-### AUTH VARIABLES
-### ============================================================
-
-@ceoSecret = change_this_ceo_secret
-
-@adminEmail = admin@sentinel.com
-@adminFullName = Sentinel Admin
-@adminPassword = admin123
-
-@secondAdminEmail = second.admin@sentinel.com
-@secondAdminFullName = Second Sentinel Admin
-@secondAdminPassword = admin456
-
-
-
-### ============================================================
-### AUTH TESTS
-### ============================================================
-
-### 0.1) Register first admin
-### Run this once. If the user already exists, skip this and run login.
-# @name registerMainAdmin
-POST {{sentinel}}/auth/register
-Content-Type: application/json
-
-{
-  "email": "{{adminEmail}}",
-  "fullName": "{{adminFullName}}",
-  "password": "{{adminPassword}}",
-  "ceoSecret": "{{ceoSecret}}"
-}
-
-
-### 0.2) Login main admin
-# @name loginMainAdmin
-POST {{sentinel}}/auth/login
-Content-Type: application/json
-
-{
-  "email": "{{adminEmail}}",
-  "password": "{{adminPassword}}"
-}
-
-
-### 0.3) Get current logged admin
-GET {{sentinel}}/auth/me
+### 17) Delete OpenRouter route through Sentinel gateway controller
+DELETE {{sentinel}}/gateway/routes/{{openrouterRoute}}
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 
 
-### 0.4) Logout
-### This only tells the frontend/client to remove the JWT.
-POST {{sentinel}}/auth/logout
+### 18) Delete Groq route through Sentinel gateway controller
+DELETE {{sentinel}}/gateway/routes/{{groqRoute}}
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 
 
-### ============================================================
-### ADMIN CREATION / DELETE TESTS
-### ============================================================
-
-### 0.5) Create second admin
-# @name registerSecondAdmin
-POST {{sentinel}}/auth/register
-Content-Type: application/json
-
-{
-  "email": "{{secondAdminEmail}}",
-  "fullName": "{{secondAdminFullName}}",
-  "password": "{{secondAdminPassword}}",
-  "ceoSecret": "{{ceoSecret}}"
-}
-
-
-### 0.6) Login second admin before deletion
-# @name loginSecondAdminBeforeDelete
-POST {{sentinel}}/auth/login
-Content-Type: application/json
-
-{
-  "email": "{{secondAdminEmail}}",
-  "password": "{{secondAdminPassword}}"
-}
-
-
-### 0.7) Delete/deactivate second admin
-### Important: we use the MAIN ADMIN token, not the second admin token.
-DELETE {{sentinel}}/auth/admins/{{registerSecondAdmin.response.body.$.user.id}}
+### 19) Delete OpenRouter service through Sentinel gateway controller
+DELETE {{sentinel}}/gateway/services/{{openrouterService}}
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
-Content-Type: application/json
-
-{
-  "ceoSecret": "{{ceoSecret}}"
-}
 
 
-### 0.8) Try login second admin after deletion
-### Expected result: 401 Unauthorized because account is inactive.
-POST {{sentinel}}/auth/login
-Content-Type: application/json
-
-{
-  "email": "{{secondAdminEmail}}",
-  "password": "{{secondAdminPassword}}"
-}
-
-
-### 0.9) Try register with wrong CEO secret
-### Expected result: 403 Forbidden.
-POST {{sentinel}}/auth/register
-Content-Type: application/json
-
-{
-  "email": "fake.admin@sentinel.com",
-  "fullName": "Fake Admin",
-  "password": "fake1234",
-  "ceoSecret": "wrong-secret"
-}
-
-
-### 0.10) Try delete yourself
-### Expected result: 403 Forbidden.
-DELETE {{sentinel}}/auth/admins/{{loginMainAdmin.response.body.$.user.id}}
+### 20) Delete Groq service through Sentinel gateway controller
+DELETE {{sentinel}}/gateway/services/{{groqService}}
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
-Content-Type: application/json
-
-{
-  "ceoSecret": "{{ceoSecret}}"
-}
