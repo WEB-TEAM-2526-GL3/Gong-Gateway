@@ -88,7 +88,7 @@ services:
     command: gateway sync --kong-addr http://kong:8001 /kong.yaml
     restart: on-failure
 
-    #sentinal_db
+    #gong_db
   gong-database:
     container_name: gong-database
     image: postgres:15
