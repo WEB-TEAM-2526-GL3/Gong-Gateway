@@ -256,7 +256,7 @@ export default function App() {
     <main className="shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">Sentinel Gateway</p>
+          <p className="eyebrow">Gong Gateway</p>
           <h1>Incident Room</h1>
         </div>
         <div className="operator">

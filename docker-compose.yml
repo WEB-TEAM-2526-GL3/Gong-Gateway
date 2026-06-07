@@ -89,26 +89,25 @@ services:
     restart: on-failure
 
     #sentinal_db
-  sentinel-database:
-    container_name: sentinel-database
+  gong-database:
+    container_name: gong-database
     image: postgres:15
     restart: on-failure
     networks:
       - kong-net
     environment:
-      POSTGRES_USER: sentinel
-      POSTGRES_PASSWORD: sentinel
+      POSTGRES_USER: gong
+      POSTGRES_PASSWORD: gong
       POSTGRES_DB: sentinel_gateway
     ports:
       - "5433:5432"
     volumes:
       - sentinel_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "sentinel"]
+      test: ["CMD", "pg_isready", "-U", "gong"]
       interval: 5s
       timeout: 10s
       retries: 10
-
 
   prometheus:
     image: prom/prometheus:latest
@@ -120,13 +119,12 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./rules.yml:/etc/prometheus/rules.yml
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - "--config.file=/etc/prometheus/prometheus.yml"
     ports:
       - "9090:9090"
     depends_on:
       kong:
         condition: service_healthy
-
 
   limit-exceeded:
     image: node:18-alpine
@@ -134,7 +132,7 @@ services:
     networks:
       - kong-net
     volumes:
-      - ./sentinel-core/bad-services/limit-exceeded.js:/app.js
+      - ./gong-core/bad-services/limit-exceeded.js:/app.js
     command: node /app.js
     restart: on-failure
 
@@ -144,6 +142,6 @@ services:
     networks:
       - kong-net
     volumes:
-      - ./sentinel-core/bad-services/provider-dead.js:/app.js
+      - ./gong-core/bad-services/provider-dead.js:/app.js
     command: node /app.js
     restart: on-failure

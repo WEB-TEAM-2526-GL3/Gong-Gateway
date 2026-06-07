@@ -1,10 +1,10 @@
-# Sentinel Gateway Architecture
+# Gong Gateway Architecture
 
-This document describes the architecture of Sentinel Gateway with Mermaid diagrams and implementation-level notes.
+This document describes the architecture of Gong Gateway with Mermaid diagrams and implementation-level notes.
 
-Sentinel Gateway is composed of:
+Gong Gateway is composed of:
 
-- `sentinel-core`: the NestJS backend, static unified dashboard, GraphQL API, REST endpoints, SSE metrics stream, and Socket.IO incident room gateway.
+- `gong-core`: the NestJS backend, static unified dashboard, GraphQL API, REST endpoints, SSE metrics stream, and Socket.IO incident room gateway.
 - `incident-room`: a React/Vite frontend dedicated to realtime incident collaboration.
 - Infrastructure services: Kong, Prometheus, PostgreSQL, and local test providers.
 
@@ -23,8 +23,8 @@ flowchart LR
     Apollo[Apollo Sandbox]
   end
 
-  subgraph Sentinel
-    Core[Sentinel Core - NestJS]
+  subgraph Gong
+    Core[Gong Core - NestJS]
     GraphQL[GraphQL Facade]
     REST[REST Controllers]
     SSE[SSE Metrics Stream]
@@ -35,7 +35,7 @@ flowchart LR
     KongProxy[Kong Proxy :8000]
     KongAdmin[Kong Admin API :8001]
     Prometheus[Prometheus :9090]
-    SentinelDB[(Sentinel PostgreSQL :5433)]
+    SentinelDB[(Gong PostgreSQL :5433)]
     KongDB[(Kong PostgreSQL :5432)]
   end
 
@@ -71,12 +71,12 @@ flowchart LR
 ```mermaid
 flowchart TB
   subgraph Host[Local Machine]
-    SentinelCore["sentinel-core\nlocalhost:3000"]
+    SentinelCore["gong-core\nlocalhost:3000"]
     IncidentRoomDev["incident-room dev\nlocalhost:5173"]
     KongProxy["Kong Proxy\nlocalhost:8000"]
     KongAdmin["Kong Admin API\nlocalhost:8001"]
     Prometheus["Prometheus\nlocalhost:9090"]
-    SentinelPostgres["Sentinel DB\nlocalhost:5433"]
+    SentinelPostgres["Gong DB\nlocalhost:5433"]
     KongPostgres["Kong DB\nlocalhost:5432"]
   end
 
@@ -94,11 +94,11 @@ flowchart TB
 ```mermaid
 flowchart LR
   subgraph Frontends
-    StaticDashboard["sentinel-core/public\nVanilla JS Dashboard"]
+    StaticDashboard["gong-core/public\nVanilla JS Dashboard"]
     ReactIncidentRoom["incident-room\nReact + Vite"]
   end
 
-  subgraph Backend["sentinel-core NestJS"]
+  subgraph Backend["gong-core NestJS"]
     AppModule[AppModule]
     GraphQLModule[SentinelGraphqlModule]
     AuthModule[AuthModule]
@@ -196,17 +196,17 @@ flowchart TB
 
 ### Module Summary
 
-| Module | Main owner of | Main inputs | Main outputs |
-| --- | --- | --- | --- |
-| `auth` | Authentication and JWT sessions | `/auth/login`, `/auth/register`, GraphQL login/register | JWT access token, authenticated user |
-| `users` | Admin user records | Auth registration, admin queries | User data and account status |
-| `gateway` | Kong administration | REST/GraphQL gateway actions | Kong services, routes, consumers, plugins |
-| `incidents` | Incident lifecycle and logs | REST/GraphQL create, Socket.IO actions, monitoring events | Incident snapshots, Socket.IO messages, backend events |
-| `monitoring` | Alert rules and checks | REST/GraphQL rule management, manual checks | Check reports, threshold events |
-| `metrics` | Prometheus metrics cache and stream | Prometheus queries and polling | `metrics.updated`, SSE stream, health state |
-| `webhooks` | Outbound webhook delivery | Webhook configs, backend events, manual emit | Delivery attempts and notifications |
-| `messenger` | Messenger inbound events | Meta webhook GET/POST | Stored inbound events and recipient summaries |
-| `graphql` | Unified frontend facade | GraphQL queries/mutations | Aggregated typed API responses |
+| Module       | Main owner of                       | Main inputs                                               | Main outputs                                           |
+| ------------ | ----------------------------------- | --------------------------------------------------------- | ------------------------------------------------------ |
+| `auth`       | Authentication and JWT sessions     | `/auth/login`, `/auth/register`, GraphQL login/register   | JWT access token, authenticated user                   |
+| `users`      | Admin user records                  | Auth registration, admin queries                          | User data and account status                           |
+| `gateway`    | Kong administration                 | REST/GraphQL gateway actions                              | Kong services, routes, consumers, plugins              |
+| `incidents`  | Incident lifecycle and logs         | REST/GraphQL create, Socket.IO actions, monitoring events | Incident snapshots, Socket.IO messages, backend events |
+| `monitoring` | Alert rules and checks              | REST/GraphQL rule management, manual checks               | Check reports, threshold events                        |
+| `metrics`    | Prometheus metrics cache and stream | Prometheus queries and polling                            | `metrics.updated`, SSE stream, health state            |
+| `webhooks`   | Outbound webhook delivery           | Webhook configs, backend events, manual emit              | Delivery attempts and notifications                    |
+| `messenger`  | Messenger inbound events            | Meta webhook GET/POST                                     | Stored inbound events and recipient summaries          |
+| `graphql`    | Unified frontend facade             | GraphQL queries/mutations                                 | Aggregated typed API responses                         |
 
 ## 5. API Surfaces
 
@@ -456,7 +456,7 @@ sequenceDiagram
 
 ## 13. Data Model
 
-Sentinel stores its own operational data in PostgreSQL. Kong configuration is mainly managed through Kong Admin API and stored by Kong in its own database.
+Gong stores its own operational data in PostgreSQL. Kong configuration is mainly managed through Kong Admin API and stored by Kong in its own database.
 
 ```mermaid
 erDiagram
@@ -577,14 +577,14 @@ flowchart TB
 
 ## 16. External Dependencies
 
-| Dependency | Used by | Purpose |
-| --- | --- | --- |
-| Kong Admin API | `GatewayService` | Manage services, routes, consumers, plugins, and credentials. |
-| Kong Proxy | Runtime traffic | Receives real API traffic from consumers. |
-| Prometheus | `PrometheusService`, `MonitoringService` | Query gateway metrics and rule values. |
-| PostgreSQL | TypeORM modules | Store users, incidents, logs, monitoring rules, and local state. |
-| Slack / Discord / Generic URLs | `WebhooksService` | Send incident and admin notifications. |
-| Messenger / Meta | `MessengerWebhookController` | Receive inbound social messages and postbacks. |
+| Dependency                     | Used by                                  | Purpose                                                          |
+| ------------------------------ | ---------------------------------------- | ---------------------------------------------------------------- |
+| Kong Admin API                 | `GatewayService`                         | Manage services, routes, consumers, plugins, and credentials.    |
+| Kong Proxy                     | Runtime traffic                          | Receives real API traffic from consumers.                        |
+| Prometheus                     | `PrometheusService`, `MonitoringService` | Query gateway metrics and rule values.                           |
+| PostgreSQL                     | TypeORM modules                          | Store users, incidents, logs, monitoring rules, and local state. |
+| Slack / Discord / Generic URLs | `WebhooksService`                        | Send incident and admin notifications.                           |
+| Messenger / Meta               | `MessengerWebhookController`             | Receive inbound social messages and postbacks.                   |
 
 ## 17. Frontend Consumption Pattern
 
@@ -605,7 +605,7 @@ flowchart LR
 
 The unified dashboard is intentionally simple:
 
-- no frontend build step for `sentinel-core/public`;
+- no frontend build step for `gong-core/public`;
 - GraphQL strings are declared in `public/app.js`;
 - `fetch('/graphql')` handles queries and mutations;
 - `EventSource('/metrics/sse')` handles live metrics;
@@ -622,14 +622,14 @@ The dedicated incident room is separate because it has a more interactive collab
 
 Good places to extend the system:
 
-| Need | Recommended place |
-| --- | --- |
-| Add a new dashboard read model | Add a GraphQL query in `SentinelGraphqlResolver`. |
-| Add a new domain action | Add service method first, then expose via REST/GraphQL/socket if needed. |
-| Add a new webhook provider | Add formatter under `webhooks/formatters`. |
-| Add a new monitoring rule type | Extend `MonitoringRuleType` and `MonitoringService`. |
-| Add a new realtime browser stream | Emit backend event first, then bridge it in a controller/gateway. |
-| Add a new Messenger event shape | Extend messenger models and repository mapping. |
+| Need                              | Recommended place                                                        |
+| --------------------------------- | ------------------------------------------------------------------------ |
+| Add a new dashboard read model    | Add a GraphQL query in `SentinelGraphqlResolver`.                        |
+| Add a new domain action           | Add service method first, then expose via REST/GraphQL/socket if needed. |
+| Add a new webhook provider        | Add formatter under `webhooks/formatters`.                               |
+| Add a new monitoring rule type    | Extend `MonitoringRuleType` and `MonitoringService`.                     |
+| Add a new realtime browser stream | Emit backend event first, then bridge it in a controller/gateway.        |
+| Add a new Messenger event shape   | Extend messenger models and repository mapping.                          |
 
 ## 19. Testing Strategy
 
@@ -651,7 +651,7 @@ flowchart LR
 Useful validation commands:
 
 ```powershell
-cd sentinel-core
+cd gong-core
 npm test
 npx tsc --noEmit -p tsconfig.build.json
 node --check public\app.js

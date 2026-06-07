@@ -31,7 +31,7 @@ import { WebhookDeliveryStatus } from '../webhooks/types/webhook-delivery-status
 import { WebhookEventType } from '../webhooks/types/webhook-event-type.enum';
 import { WebhookProvider } from '../webhooks/types/webhook-provider.enum';
 import { WebhooksService } from '../webhooks/webhooks.service';
-import { SentinelGraphqlResolver } from './sentinel-graphql.resolver';
+import { SentinelGraphqlResolver } from './gong-graphql.resolver';
 
 type MockedServices = {
   authService: {
@@ -93,7 +93,7 @@ describe('SentinelGraphqlResolver', () => {
   });
 
   it('returns health and delegates randomized auth inputs', async () => {
-    const email = `${randomSlug()}@sentinel.test`;
+    const email = `${randomSlug()}@gong.test`;
     const fullName = `Admin ${randomSlug()}`;
     const password = randomSlug();
     const ceoSecret = randomSlug();
@@ -106,7 +106,7 @@ describe('SentinelGraphqlResolver', () => {
       user,
     });
 
-    expect(resolver.graphqlHealth()).toBe('Sentinel GraphQL is ready');
+    expect(resolver.graphqlHealth()).toBe('Gong GraphQL is ready');
 
     const result = await resolver.register({
       email,
@@ -126,7 +126,9 @@ describe('SentinelGraphqlResolver', () => {
   });
 
   it('generates the GraphQL schema without undefined field types', async () => {
-    const gatewayModuleMock = jest.requireMock('../gateway/gateway.service') as {
+    const gatewayModuleMock = jest.requireMock(
+      '../gateway/gateway.service',
+    ) as {
       GatewayService: new () => unknown;
     };
 
@@ -137,7 +139,10 @@ describe('SentinelGraphqlResolver', () => {
         { provide: AuthService, useValue: services.authService },
         { provide: CeoSecretService, useValue: services.ceoSecretService },
         { provide: UsersService, useValue: services.usersService },
-        { provide: gatewayModuleMock.GatewayService, useValue: services.gatewayService },
+        {
+          provide: gatewayModuleMock.GatewayService,
+          useValue: services.gatewayService,
+        },
         { provide: IncidentsService, useValue: services.incidentsService },
         { provide: MonitoringService, useValue: services.monitoringService },
         { provide: MetricsService, useValue: services.metricsService },
@@ -375,8 +380,7 @@ function createServices(): MockedServices {
     },
     incidentsService: {
       listIncidents: jest.fn<IncidentsService['listIncidents']>(),
-      getIncidentSnapshot:
-        jest.fn<IncidentsService['getIncidentSnapshot']>(),
+      getIncidentSnapshot: jest.fn<IncidentsService['getIncidentSnapshot']>(),
     },
     monitoringService: {
       getLastReport: jest.fn<MonitoringService['getLastReport']>(),
@@ -397,7 +401,7 @@ function createServices(): MockedServices {
 function userEntity(overrides: Partial<UserEntity> = {}): UserEntity {
   return {
     id: randomId(),
-    email: `${randomSlug()}@sentinel.test`,
+    email: `${randomSlug()}@gong.test`,
     fullName: `Admin ${randomSlug()}`,
     passwordHash: randomSlug(),
     role: UserRole.ADMIN,

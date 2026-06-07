@@ -1,6 +1,6 @@
-# Sentinel Gateway
+# Gong Gateway
 
-Sentinel Gateway is a control and observability platform for an API Gateway environment. It brings together Kong, Prometheus, a NestJS backend, a GraphQL API, a unified dashboard, and a realtime incident room.
+Gong Gateway is a control and observability platform for an API Gateway environment. It brings together Kong, Prometheus, a NestJS backend, a GraphQL API, a unified dashboard, and a realtime incident room.
 
 The goal is to give operators a clear view of traffic, exposed services, incidents, monitoring alerts, webhooks, and external integrations without forcing them to jump between many tools.
 
@@ -8,22 +8,22 @@ The goal is to give operators a clear view of traffic, exposed services, inciden
 
 The repository is organized around two main applications:
 
-| Folder | Purpose |
-| --- | --- |
-| `sentinel-core` | NestJS backend, REST API, GraphQL API, SSE metrics, Socket.IO incident room gateway, and Kong/Prometheus/Webhooks/Messenger integrations. |
-| `incident-room` | React/Vite frontend dedicated to realtime incident collaboration. |
+| Folder          | Purpose                                                                                                                                   |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `gong-core`     | NestJS backend, REST API, GraphQL API, SSE metrics, Socket.IO incident room gateway, and Kong/Prometheus/Webhooks/Messenger integrations. |
+| `incident-room` | React/Vite frontend dedicated to realtime incident collaboration.                                                                         |
 
 The local infrastructure is described in `docker-compose.yml`:
 
-| Service | Port | Purpose |
-| --- | ---: | --- |
-| Sentinel Core | `3000` | Backend API, unified dashboard, GraphQL, SSE. |
-| Incident Room dev | `5173` | React/Vite frontend for the incident room. |
-| Kong Proxy | `8000` | Entry point for proxied application traffic. |
-| Kong Admin API | `8001` | Kong administration API used by Sentinel. |
-| Prometheus | `9090` | Kong metrics collection and querying. |
-| Sentinel PostgreSQL | `5433` | Sentinel database. |
-| Kong PostgreSQL | `5432` | Kong database. |
+| Service           |   Port | Purpose                                       |
+| ----------------- | -----: | --------------------------------------------- |
+| Gong Core         | `3000` | Backend API, unified dashboard, GraphQL, SSE. |
+| Incident Room dev | `5173` | React/Vite frontend for the incident room.    |
+| Kong Proxy        | `8000` | Entry point for proxied application traffic.  |
+| Kong Admin API    | `8001` | Kong administration API used by Gong.         |
+| Prometheus        | `9090` | Kong metrics collection and querying.         |
+| Gong PostgreSQL   | `5433` | Gong database.                                |
+| Kong PostgreSQL   | `5432` | Kong database.                                |
 
 ## Main Features
 
@@ -42,13 +42,13 @@ The local infrastructure is described in `docker-compose.yml`:
 
 After starting the backend:
 
-| Interface | URL |
-| --- | --- |
-| Unified dashboard | `http://localhost:3000/dashboard` |
-| Apollo GraphQL | `http://localhost:3000/graphql` |
-| Metrics SSE | `http://localhost:3000/metrics/sse` |
-| REST incidents | `http://localhost:3000/incidents` |
-| Incident Room dev | `http://localhost:5173` |
+| Interface         | URL                                 |
+| ----------------- | ----------------------------------- |
+| Unified dashboard | `http://localhost:3000/dashboard`   |
+| Apollo GraphQL    | `http://localhost:3000/graphql`     |
+| Metrics SSE       | `http://localhost:3000/metrics/sse` |
+| REST incidents    | `http://localhost:3000/incidents`   |
+| Incident Room dev | `http://localhost:5173`             |
 
 The unified dashboard uses GraphQL for standard data loading and mutations. Live metrics use SSE. The incident room uses Socket.IO.
 
@@ -68,7 +68,7 @@ docker compose up -d
 Start the backend:
 
 ```powershell
-cd sentinel-core
+cd gong-core
 npm install
 npm run start:dev
 ```
@@ -97,7 +97,7 @@ The dashboard's "Open Incident Room" button first tries to open an embedded buil
 
 ## Configuration
 
-The backend reads its configuration from `sentinel-core/.env`.
+The backend reads its configuration from `gong-core/.env`.
 
 Important variables:
 
@@ -106,8 +106,8 @@ PORT=3000
 
 DB_HOST=localhost
 DB_PORT=5433
-DB_USERNAME=sentinel
-DB_PASSWORD=sentinel
+DB_USERNAME=gong
+DB_PASSWORD=gong
 DB_DATABASE=sentinel_gateway
 
 SENTINEL_CORS_ORIGIN=http://localhost:5173
@@ -152,9 +152,9 @@ GraphQL acts as a unified facade for:
 
 The project uses two realtime mechanisms:
 
-| Mechanism | Purpose |
-| --- | --- |
-| SSE `/metrics/sse` | Prometheus metrics stream and health changes. |
+| Mechanism                  | Purpose                                            |
+| -------------------------- | -------------------------------------------------- |
+| SSE `/metrics/sse`         | Prometheus metrics stream and health changes.      |
 | Socket.IO `/incident-room` | Incident collaboration and realtime incident feed. |
 
 SSE metrics feed the dashboard cards and live charts. Socket.IO lets the Incident Room receive new incidents without a refresh button.
@@ -164,7 +164,7 @@ SSE metrics feed the dashboard cards and live charts. Socket.IO lets the Inciden
 Backend:
 
 ```powershell
-cd sentinel-core
+cd gong-core
 npm test
 npx tsc --noEmit -p tsconfig.build.json
 ```
@@ -172,7 +172,7 @@ npx tsc --noEmit -p tsconfig.build.json
 Useful focused tests:
 
 ```powershell
-npm test -- sentinel-graphql.resolver --runInBand
+npm test -- gong-graphql.resolver --runInBand
 npm test -- prometheus.service metrics.service --runInBand
 ```
 
@@ -186,7 +186,7 @@ npm run build
 Static dashboard:
 
 ```powershell
-cd sentinel-core
+cd gong-core
 node --check public\app.js
 ```
 
@@ -194,23 +194,22 @@ node --check public\app.js
 
 Each backend module has dedicated documentation:
 
-- `sentinel-core/src/auth/README.md`
-- `sentinel-core/src/users/README.md`
-- `sentinel-core/src/gateway/README.md`
-- `sentinel-core/src/incidents/README.md`
-- `sentinel-core/src/monitoring/README.md`
-- `sentinel-core/src/metrics/README.md`
-- `sentinel-core/src/webhooks/README.md`
-- `sentinel-core/src/messenger/README.md`
+- `gong-core/src/auth/README.md`
+- `gong-core/src/users/README.md`
+- `gong-core/src/gateway/README.md`
+- `gong-core/src/incidents/README.md`
+- `gong-core/src/monitoring/README.md`
+- `gong-core/src/metrics/README.md`
+- `gong-core/src/webhooks/README.md`
+- `gong-core/src/messenger/README.md`
 
-Additional notes are available under `sentinel-core/docs/`.
+Additional notes are available under `gong-core/docs/`.
 
 ## Development Notes
 
-- `sentinel-core` is the central application and should remain the owner of business logic.
+- `gong-core` is the central application and should remain the owner of business logic.
 - GraphQL simplifies frontend consumption, but it does not replace realtime streams.
 - Backend events stay decoupled from frontend messages.
 - Kong receives real traffic on `localhost:8000`.
-- Sentinel administers Kong through `localhost:8001`.
+- Gong administers Kong through `localhost:8001`.
 - Prometheus collects Kong metrics from `/metrics`.
-

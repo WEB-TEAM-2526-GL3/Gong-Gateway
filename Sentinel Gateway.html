@@ -1,387 +1,1089 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>Sentinel Gateway — Présentation du projet</title>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
-<style>
-  :root{
-    --navy:#0d2b45; --blue:#13486e; --teal:#2c7da0; --teal-soft:#e3eef3;
-    --ink:#1d2a38; --grey:#5b6b7d; --line:#d4dde6; --bg-soft:#f1f5f9;
-    --amber:#b9770e; --green:#1e7d4f; --red:#b23a3a; --violet:#6d4a9e;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  html{-webkit-print-color-adjust:exact;print-color-adjust:exact;scroll-behavior:smooth;}
-  body{font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-    color:var(--ink);font-size:12pt;line-height:1.6;background:#f6f8fb;}
-  @page{size:A4;margin:18mm 24mm 18mm 24mm;}
-  .page-break{page-break-before:always;}
-  section{page-break-inside:auto;}
-  h1,h2,h3,h4{page-break-after:avoid;}
-  table,figure,pre,.box,.diagram{page-break-inside:avoid;}
+  <head>
+    <meta charset="UTF-8" />
+    <title>Gong Gateway — Présentation du projet</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+      :root {
+        --navy: #0d2b45;
+        --blue: #13486e;
+        --teal: #2c7da0;
+        --teal-soft: #e3eef3;
+        --ink: #1d2a38;
+        --grey: #5b6b7d;
+        --line: #d4dde6;
+        --bg-soft: #f1f5f9;
+        --amber: #b9770e;
+        --green: #1e7d4f;
+        --red: #b23a3a;
+        --violet: #6d4a9e;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        color: var(--ink);
+        font-size: 12pt;
+        line-height: 1.6;
+        background: #f6f8fb;
+      }
+      @page {
+        size: A4;
+        margin: 18mm 24mm 18mm 24mm;
+      }
+      .page-break {
+        page-break-before: always;
+      }
+      section {
+        page-break-inside: auto;
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        page-break-after: avoid;
+      }
+      table,
+      figure,
+      pre,
+      .box,
+      .diagram {
+        page-break-inside: avoid;
+      }
 
-  /* ---------- cover ---------- */
-  .cover{height:262mm;display:flex;flex-direction:column;justify-content:space-between;
-    background:linear-gradient(150deg,#0d2b45 0%,#13486e 55%,#2c7da0 100%);
-    color:#fff;padding:26mm 22mm;page-break-after:always;border-radius:4px;}
-  .cover .badge{display:inline-block;border:1px solid rgba(255,255,255,.45);
-    border-radius:30px;padding:5px 16px;font-size:9pt;letter-spacing:2px;
-    text-transform:uppercase;}
-  .cover h1{font-size:44pt;line-height:1.05;font-weight:800;margin:16px 0 6px;}
-  .cover .sub{font-size:14pt;font-weight:300;opacity:.93;max-width:140mm;}
-  .cover .rule{width:80mm;height:4px;background:#7fc7d9;margin:22px 0;border-radius:3px;}
-  .cover .pillars{display:flex;gap:10px;margin-top:10px;}
-  .cover .pillars div{flex:1;background:rgba(255,255,255,.09);
-    border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:14px 14px;}
-  .cover .pillars b{font-size:10.8pt;display:block;margin-bottom:4px;}
-  .cover .pillars span{font-size:8.5pt;opacity:.85;line-height:1.45;}
-  .cover .meta{font-size:9pt;opacity:.88;border-top:1px solid rgba(255,255,255,.25);
-    padding-top:14px;display:flex;justify-content:space-between;}
+      /* ---------- cover ---------- */
+      .cover {
+        height: 262mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: linear-gradient(
+          150deg,
+          #0d2b45 0%,
+          #13486e 55%,
+          #2c7da0 100%
+        );
+        color: #fff;
+        padding: 26mm 22mm;
+        page-break-after: always;
+        border-radius: 4px;
+      }
+      .cover .badge {
+        display: inline-block;
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        border-radius: 30px;
+        padding: 5px 16px;
+        font-size: 9pt;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+      .cover h1 {
+        font-size: 44pt;
+        line-height: 1.05;
+        font-weight: 800;
+        margin: 16px 0 6px;
+      }
+      .cover .sub {
+        font-size: 14pt;
+        font-weight: 300;
+        opacity: 0.93;
+        max-width: 140mm;
+      }
+      .cover .rule {
+        width: 80mm;
+        height: 4px;
+        background: #7fc7d9;
+        margin: 22px 0;
+        border-radius: 3px;
+      }
+      .cover .pillars {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .cover .pillars div {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.09);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 12px;
+        padding: 14px 14px;
+      }
+      .cover .pillars b {
+        font-size: 10.8pt;
+        display: block;
+        margin-bottom: 4px;
+      }
+      .cover .pillars span {
+        font-size: 8.5pt;
+        opacity: 0.85;
+        line-height: 1.45;
+      }
+      .cover .meta {
+        font-size: 9pt;
+        opacity: 0.88;
+        border-top: 1px solid rgba(255, 255, 255, 0.25);
+        padding-top: 14px;
+        display: flex;
+        justify-content: space-between;
+      }
 
-  /* ---------- part dividers ---------- */
-  .part-title{page-break-before:always;background:linear-gradient(135deg,var(--navy),var(--blue));
-    color:#fff;border-radius:14px;padding:26px 28px;margin:40px 0 28px;
-    box-shadow:0 6px 20px rgba(13,43,69,.15);}
-  .part-title .k{font-size:9pt;letter-spacing:3px;opacity:.7;text-transform:uppercase;}
-  .part-title h1{font-size:26pt;font-weight:800;margin-top:6px;}
-  .part-title .sub{font-size:11pt;opacity:.85;margin-top:6px;max-width:160mm;}
+      /* ---------- part dividers ---------- */
+      .part-title {
+        page-break-before: always;
+        background: linear-gradient(135deg, var(--navy), var(--blue));
+        color: #fff;
+        border-radius: 14px;
+        padding: 26px 28px;
+        margin: 40px 0 28px;
+        box-shadow: 0 6px 20px rgba(13, 43, 69, 0.15);
+      }
+      .part-title .k {
+        font-size: 9pt;
+        letter-spacing: 3px;
+        opacity: 0.7;
+        text-transform: uppercase;
+      }
+      .part-title h1 {
+        font-size: 26pt;
+        font-weight: 800;
+        margin-top: 6px;
+      }
+      .part-title .sub {
+        font-size: 11pt;
+        opacity: 0.85;
+        margin-top: 6px;
+        max-width: 160mm;
+      }
 
-  /* ---------- slide sections ---------- */
-  section{background:#fff;border:1px solid var(--line);border-radius:14px;
-    padding:26px 30px;margin:22px 0;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
-  section .slide-tag{display:inline-block;font-size:8pt;letter-spacing:2px;text-transform:uppercase;
-    color:var(--teal);font-weight:700;margin-bottom:6px;}
-  h2{font-size:18pt;color:var(--navy);margin:4px 0 14px;padding-bottom:10px;
-    border-bottom:3px solid var(--teal);font-weight:800;}
-  h3{font-size:13pt;color:var(--blue);margin:20px 0 8px;font-weight:700;}
-  h4{font-size:11pt;color:var(--teal);margin:14px 0 6px;font-weight:700;
-    text-transform:uppercase;letter-spacing:0.5px;}
-  p{margin:10px 0;}
-  ul,ol{margin:10px 0 10px 24px;}
-  li{margin:5px 0;}
-  code{background:#eef2f6;border-radius:4px;padding:2px 6px;
-    font-family:"JetBrains Mono",Consolas,monospace;font-size:9.5pt;color:#0a3a52;}
-  pre{background:#0d2b45;color:#dce6ee;border-radius:9px;padding:14px 16px;
-    font-family:"JetBrains Mono",Consolas,monospace;font-size:9pt;line-height:1.6;
-    overflow-x:auto;margin:12px 0;}
-  pre .c{color:#7fa9c4;}
-  pre .k{color:#7fc7d9;}
-  pre .s{color:#e6b86f;}
+      /* ---------- slide sections ---------- */
+      section {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 26px 30px;
+        margin: 22px 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      }
+      section .slide-tag {
+        display: inline-block;
+        font-size: 8pt;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--teal);
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      h2 {
+        font-size: 18pt;
+        color: var(--navy);
+        margin: 4px 0 14px;
+        padding-bottom: 10px;
+        border-bottom: 3px solid var(--teal);
+        font-weight: 800;
+      }
+      h3 {
+        font-size: 13pt;
+        color: var(--blue);
+        margin: 20px 0 8px;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 11pt;
+        color: var(--teal);
+        margin: 14px 0 6px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      p {
+        margin: 10px 0;
+      }
+      ul,
+      ol {
+        margin: 10px 0 10px 24px;
+      }
+      li {
+        margin: 5px 0;
+      }
+      code {
+        background: #eef2f6;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 9.5pt;
+        color: #0a3a52;
+      }
+      pre {
+        background: #0d2b45;
+        color: #dce6ee;
+        border-radius: 9px;
+        padding: 14px 16px;
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 9pt;
+        line-height: 1.6;
+        overflow-x: auto;
+        margin: 12px 0;
+      }
+      pre .c {
+        color: #7fa9c4;
+      }
+      pre .k {
+        color: #7fc7d9;
+      }
+      pre .s {
+        color: #e6b86f;
+      }
 
-  /* ---------- tables ---------- */
-  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:9.6pt;}
-  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
-  th{background:var(--navy);color:#fff;font-weight:600;font-size:9pt;
-    text-transform:uppercase;letter-spacing:0.4px;}
-  tr:nth-child(even) td{background:var(--bg-soft);}
-  td code{font-size:8.5pt;}
+      /* ---------- tables ---------- */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12px 0;
+        font-size: 9.6pt;
+      }
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 8px 10px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: var(--navy);
+        color: #fff;
+        font-weight: 600;
+        font-size: 9pt;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+      }
+      tr:nth-child(even) td {
+        background: var(--bg-soft);
+      }
+      td code {
+        font-size: 8.5pt;
+      }
 
-  /* ---------- components ---------- */
-  .box{border:1px solid var(--line);border-left:5px solid var(--teal);
-    background:#f7fafc;border-radius:10px;padding:14px 16px;margin:12px 0;}
-  .box.warn{border-left-color:var(--amber);background:#fdf7ec;}
-  .box.ok{border-left-color:var(--green);background:#eef8f1;}
-  .box.info{border-left-color:var(--blue);background:#eef3f8;}
-  .box.danger{border-left-color:var(--red);background:#fbeeee;}
-  .box h4{margin-top:0;}
-  .lead{font-size:11.5pt;color:var(--grey);margin:4px 0 16px;}
+      /* ---------- components ---------- */
+      .box {
+        border: 1px solid var(--line);
+        border-left: 5px solid var(--teal);
+        background: #f7fafc;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin: 12px 0;
+      }
+      .box.warn {
+        border-left-color: var(--amber);
+        background: #fdf7ec;
+      }
+      .box.ok {
+        border-left-color: var(--green);
+        background: #eef8f1;
+      }
+      .box.info {
+        border-left-color: var(--blue);
+        background: #eef3f8;
+      }
+      .box.danger {
+        border-left-color: var(--red);
+        background: #fbeeee;
+      }
+      .box h4 {
+        margin-top: 0;
+      }
+      .lead {
+        font-size: 11.5pt;
+        color: var(--grey);
+        margin: 4px 0 16px;
+      }
 
-  .tag{display:inline-block;background:var(--teal);color:#fff;border-radius:20px;
-    padding:2px 10px;font-size:7.8pt;font-weight:700;margin-right:4px;
-    letter-spacing:0.4px;text-transform:uppercase;}
-  .tag.g{background:var(--green);}.tag.a{background:var(--amber);}
-  .tag.r{background:var(--red);}.tag.v{background:var(--violet);}.tag.b{background:var(--blue);}
-  .tag.n{background:var(--navy);}
+      .tag {
+        display: inline-block;
+        background: var(--teal);
+        color: #fff;
+        border-radius: 20px;
+        padding: 2px 10px;
+        font-size: 7.8pt;
+        font-weight: 700;
+        margin-right: 4px;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+      }
+      .tag.g {
+        background: var(--green);
+      }
+      .tag.a {
+        background: var(--amber);
+      }
+      .tag.r {
+        background: var(--red);
+      }
+      .tag.v {
+        background: var(--violet);
+      }
+      .tag.b {
+        background: var(--blue);
+      }
+      .tag.n {
+        background: var(--navy);
+      }
 
-  .grid2{display:flex;gap:14px;flex-wrap:wrap;}
-  .grid2>div{flex:1 1 44%;}
-  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+      .grid2 {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      .grid2 > div {
+        flex: 1 1 44%;
+      }
+      .grid3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .grid4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
 
-  .cardrow{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;}
-  .card{flex:1 1 30%;background:#f7fafc;border:1px solid var(--line);
-    border-radius:11px;padding:12px 14px;font-size:9pt;}
-  .card b{color:var(--navy);font-size:10pt;display:block;margin-bottom:4px;}
-  .card.accent{background:#e3eef3;border-color:#9ecbd9;}
-  .card.green{background:#eef8f1;border-color:#bfdcc8;}
-  .card.warn{background:#fdf7ec;border-color:#e8cf9a;}
+      .cardrow {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 10px 0;
+      }
+      .card {
+        flex: 1 1 30%;
+        background: #f7fafc;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        padding: 12px 14px;
+        font-size: 9pt;
+      }
+      .card b {
+        color: var(--navy);
+        font-size: 10pt;
+        display: block;
+        margin-bottom: 4px;
+      }
+      .card.accent {
+        background: #e3eef3;
+        border-color: #9ecbd9;
+      }
+      .card.green {
+        background: #eef8f1;
+        border-color: #bfdcc8;
+      }
+      .card.warn {
+        background: #fdf7ec;
+        border-color: #e8cf9a;
+      }
 
-  .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0;}
-  .kpi div{background:linear-gradient(135deg,#f7fafc,#e3eef3);border:1px solid var(--line);
-    border-radius:11px;padding:14px;text-align:center;}
-  .kpi b{display:block;font-size:18pt;color:var(--navy);font-weight:800;}
-  .kpi span{font-size:8.5pt;color:var(--grey);text-transform:uppercase;letter-spacing:0.5px;}
+      .kpi {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin: 14px 0;
+      }
+      .kpi div {
+        background: linear-gradient(135deg, #f7fafc, #e3eef3);
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        padding: 14px;
+        text-align: center;
+      }
+      .kpi b {
+        display: block;
+        font-size: 18pt;
+        color: var(--navy);
+        font-weight: 800;
+      }
+      .kpi span {
+        font-size: 8.5pt;
+        color: var(--grey);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
 
-  .diagram{background:#fff;border:1px solid var(--line);border-radius:12px;
-    padding:18px;margin:14px 0;text-align:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.6);}
-  .diagram .cap{font-size:8.5pt;color:var(--grey);margin-top:10px;font-style:italic;}
-  .mermaid{display:flex;justify-content:center;}
-  .mermaid svg{max-width:100%;height:auto;background:#fff !important;}
-  .mermaid svg text{fill:#0d2b45 !important;}
-  .mermaid g text{fill:#0d2b45 !important;}
+      .diagram {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 18px;
+        margin: 14px 0;
+        text-align: center;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      }
+      .diagram .cap {
+        font-size: 8.5pt;
+        color: var(--grey);
+        margin-top: 10px;
+        font-style: italic;
+      }
+      .mermaid {
+        display: flex;
+        justify-content: center;
+      }
+      .mermaid svg {
+        max-width: 100%;
+        height: auto;
+        background: #fff !important;
+      }
+      .mermaid svg text {
+        fill: #0d2b45 !important;
+      }
+      .mermaid g text {
+        fill: #0d2b45 !important;
+      }
 
-  /* ---------- TOC ---------- */
-  .toc{page-break-after:always;}
-  .toc h2{border-bottom:3px solid var(--teal);}
-  .toc ol{list-style:none;margin-left:0;}
-  .toc>ol>li{font-weight:700;color:var(--navy);margin:14px 0 6px;font-size:12pt;}
-  .toc>ol>li>ol{margin:6px 0 6px 18px;}
-  .toc>ol>li>ol>li{font-weight:400;color:var(--ink);font-size:10.5pt;margin:3px 0;}
-  .toc a{color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--teal);
-    transition:all 0.2s;}
-  .toc a:hover{color:var(--teal);border-bottom-style:solid;}
+      /* ---------- TOC ---------- */
+      .toc {
+        page-break-after: always;
+      }
+      .toc h2 {
+        border-bottom: 3px solid var(--teal);
+      }
+      .toc ol {
+        list-style: none;
+        margin-left: 0;
+      }
+      .toc > ol > li {
+        font-weight: 700;
+        color: var(--navy);
+        margin: 14px 0 6px;
+        font-size: 12pt;
+      }
+      .toc > ol > li > ol {
+        margin: 6px 0 6px 18px;
+      }
+      .toc > ol > li > ol > li {
+        font-weight: 400;
+        color: var(--ink);
+        font-size: 10.5pt;
+        margin: 3px 0;
+      }
+      .toc a {
+        color: var(--ink);
+        text-decoration: none;
+        border-bottom: 1px dotted var(--teal);
+        transition: all 0.2s;
+      }
+      .toc a:hover {
+        color: var(--teal);
+        border-bottom-style: solid;
+      }
 
-  /* ---------- misc ---------- */
-  .small{font-size:8.6pt;color:var(--grey);}
-  footer.end{margin-top:30px;border-top:1px solid var(--line);padding-top:14px;
-    text-align:center;font-size:8.5pt;color:var(--grey);}
-  @media screen { body{padding:0 40px;} }
-</style>
-</head>
-<body>
-
-<!-- ============ COVER ============ -->
-<div class="cover">
-  <div>
-    <span class="badge">Présentation projet</span>
-    <h1>Sentinel<br>Gateway</h1>
-    <div class="rule"></div>
-    <p class="sub">Control plane NestJS au-dessus de Kong 3.x, observant le trafic via
-    Prometheus, déclenchant des incidents collaboratifs et notifiant les équipes par
-    Slack, Discord et webhooks génériques.</p>
-  </div>
-  <div>
-    <div class="pillars">
-      <div><b>Configurer Kong</b><span>REST + GraphQL pour services, routes, plugins et consumers via l'Admin API.</span></div>
-      <div><b>Observer</b><span>Métriques Prometheus, règles de monitoring, santé des services.</span></div>
-      <div><b>Réagir</b><span>Incidents avec salle WebSocket, journal d'actions, fan-out vers Slack/Discord.</span></div>
+      /* ---------- misc ---------- */
+      .small {
+        font-size: 8.6pt;
+        color: var(--grey);
+      }
+      footer.end {
+        margin-top: 30px;
+        border-top: 1px solid var(--line);
+        padding-top: 14px;
+        text-align: center;
+        font-size: 8.5pt;
+        color: var(--grey);
+      }
+      @media screen {
+        body {
+          padding: 0 40px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ============ COVER ============ -->
+    <div class="cover">
+      <div>
+        <span class="badge">Présentation projet</span>
+        <h1>Gong<br />Gateway</h1>
+        <div class="rule"></div>
+        <p class="sub">
+          Control plane NestJS au-dessus de Kong 3.x, observant le trafic via
+          Prometheus, déclenchant des incidents collaboratifs et notifiant les
+          équipes par Slack, Discord et webhooks génériques.
+        </p>
+      </div>
+      <div>
+        <div class="pillars">
+          <div>
+            <b>Configurer Kong</b
+            ><span
+              >REST + GraphQL pour services, routes, plugins et consumers via
+              l'Admin API.</span
+            >
+          </div>
+          <div>
+            <b>Observer</b
+            ><span
+              >Métriques Prometheus, règles de monitoring, santé des
+              services.</span
+            >
+          </div>
+          <div>
+            <b>Réagir</b
+            ><span
+              >Incidents avec salle WebSocket, journal d'actions, fan-out vers
+              Slack/Discord.</span
+            >
+          </div>
+        </div>
+        <div class="meta" style="margin-top: 22px">
+          <span>Version 2.0 &nbsp;·&nbsp; 29 mai 2026</span>
+          <span
+            >Stack : NestJS 11 · TypeORM · PostgreSQL · Kong 3.9 · Prometheus ·
+            React + Vite</span
+          >
+          <span>Statut : implémentation MVP en cours</span>
+        </div>
+      </div>
     </div>
-    <div class="meta" style="margin-top:22px;">
-      <span>Version 2.0 &nbsp;·&nbsp; 29 mai 2026</span>
-      <span>Stack : NestJS 11 · TypeORM · PostgreSQL · Kong 3.9 · Prometheus · React + Vite</span>
-      <span>Statut : implémentation MVP en cours</span>
+
+    <!-- ============ TOC ============ -->
+    <div class="toc">
+      <h2>Sommaire</h2>
+      <ol>
+        <li>
+          Partie I — Vue d'ensemble du produit
+          <ol>
+            <li>
+              <a href="#sect-1-1">1.1 &nbsp; Positionnement et objectifs</a>
+            </li>
+            <li><a href="#sect-1-2">1.2 &nbsp; Périmètre actuel</a></li>
+            <li><a href="#sect-1-3">1.3 &nbsp; Acteur unique : l'Admin</a></li>
+            <li>
+              <a href="#sect-1-4">1.4 &nbsp; Surface fonctionnelle livrée</a>
+            </li>
+            <li>
+              <a href="#sect-1-5">1.5 &nbsp; Critères d'acceptation MVP</a>
+            </li>
+          </ol>
+        </li>
+        <li>
+          Partie II — Architecture en place
+          <ol>
+            <li><a href="#sect-2-1">2.1 &nbsp; Vue d'ensemble système</a></li>
+            <li><a href="#sect-2-2">2.2 &nbsp; Découpage du projet</a></li>
+            <li><a href="#sect-2-3">2.3 &nbsp; Hiérarchie complète</a></li>
+            <li>
+              <a href="#sect-2-4"
+                >2.4 &nbsp; Modules NestJS et responsabilités</a
+              >
+            </li>
+            <li>
+              <a href="#sect-2-5">2.5 &nbsp; Architecture événementielle</a>
+            </li>
+            <li><a href="#sect-2-6">2.6 &nbsp; Modèle de domaine</a></li>
+            <li>
+              <a href="#sect-2-7">2.7 &nbsp; Séquence : détection d'anomalie</a>
+            </li>
+            <li>
+              <a href="#sect-2-8">2.8 &nbsp; Cycle de vie d'un incident</a>
+            </li>
+            <li>
+              <a href="#sect-2-9">2.9 &nbsp; Modèle physique de données</a>
+            </li>
+            <li><a href="#sect-2-10">2.10 &nbsp; Protocoles utilisés</a></li>
+            <li>
+              <a href="#sect-2-11">2.11 &nbsp; Sécurité et authentification</a>
+            </li>
+          </ol>
+        </li>
+        <li>
+          Partie III — Équipe et démonstration
+          <ol>
+            <li><a href="#sect-3-1">3.1 &nbsp; Répartition de l'équipe</a></li>
+            <li><a href="#sect-3-2">3.2 &nbsp; Stratégie de tests</a></li>
+            <li><a href="#sect-3-3">3.3 &nbsp; Limites actuelles</a></li>
+            <li>
+              <a href="#sect-3-4">3.4 &nbsp; Scénario de démonstration</a>
+            </li>
+          </ol>
+        </li>
+      </ol>
     </div>
-  </div>
-</div>
 
-<!-- ============ TOC ============ -->
-<div class="toc">
-  <h2>Sommaire</h2>
-  <ol>
-    <li>Partie I — Vue d'ensemble du produit
-      <ol>
-        <li><a href="#sect-1-1">1.1 &nbsp; Positionnement et objectifs</a></li>
-        <li><a href="#sect-1-2">1.2 &nbsp; Périmètre actuel</a></li>
-        <li><a href="#sect-1-3">1.3 &nbsp; Acteur unique : l'Admin</a></li>
-        <li><a href="#sect-1-4">1.4 &nbsp; Surface fonctionnelle livrée</a></li>
-        <li><a href="#sect-1-5">1.5 &nbsp; Critères d'acceptation MVP</a></li>
-      </ol>
-    </li>
-    <li>Partie II — Architecture en place
-      <ol>
-        <li><a href="#sect-2-1">2.1 &nbsp; Vue d'ensemble système</a></li>
-        <li><a href="#sect-2-2">2.2 &nbsp; Découpage du projet</a></li>
-        <li><a href="#sect-2-3">2.3 &nbsp; Hiérarchie complète</a></li>
-        <li><a href="#sect-2-4">2.4 &nbsp; Modules NestJS et responsabilités</a></li>
-        <li><a href="#sect-2-5">2.5 &nbsp; Architecture événementielle</a></li>
-        <li><a href="#sect-2-6">2.6 &nbsp; Modèle de domaine</a></li>
-        <li><a href="#sect-2-7">2.7 &nbsp; Séquence : détection d'anomalie</a></li>
-        <li><a href="#sect-2-8">2.8 &nbsp; Cycle de vie d'un incident</a></li>
-        <li><a href="#sect-2-9">2.9 &nbsp; Modèle physique de données</a></li>
-        <li><a href="#sect-2-10">2.10 &nbsp; Protocoles utilisés</a></li>
-        <li><a href="#sect-2-11">2.11 &nbsp; Sécurité et authentification</a></li>
-      </ol>
-    </li>
-    <li>Partie III — Équipe et démonstration
-      <ol>
-        <li><a href="#sect-3-1">3.1 &nbsp; Répartition de l'équipe</a></li>
-        <li><a href="#sect-3-2">3.2 &nbsp; Stratégie de tests</a></li>
-        <li><a href="#sect-3-3">3.3 &nbsp; Limites actuelles</a></li>
-        <li><a href="#sect-3-4">3.4 &nbsp; Scénario de démonstration</a></li>
-      </ol>
-    </li>
-  </ol>
-</div>
+    <!-- ================= PARTIE I ================= -->
+    <div class="part-title">
+      <div class="k">Partie I</div>
+      <h1>Vue d'ensemble du produit</h1>
+      <div class="sub">
+        Ce que fait Gong Gateway aujourd'hui, ce qui est volontairement hors
+        périmètre, et qui s'en sert.
+      </div>
+    </div>
 
-<!-- ================= PARTIE I ================= -->
-<div class="part-title">
-  <div class="k">Partie I</div>
-  <h1>Vue d'ensemble du produit</h1>
-  <div class="sub">Ce que fait Sentinel Gateway aujourd'hui, ce qui est volontairement
-  hors périmètre, et qui s'en sert.</div>
-</div>
+    <section>
+      <span class="slide-tag">Slide 01</span>
+      <h2 id="sect-1-1">1.1 — Positionnement et objectifs</h2>
+      <p class="lead">
+        Gong Gateway est un <strong>control plane</strong> NestJS qui pilote
+        une instance Kong existante, observe son trafic via Prometheus et
+        orchestre la réponse aux anomalies.
+      </p>
 
-<section>
-<span class="slide-tag">Slide 01</span>
-<h2 id="sect-1-1">1.1 — Positionnement et objectifs</h2>
-<p class="lead">Sentinel Gateway est un <strong>control plane</strong> NestJS qui pilote
-une instance Kong existante, observe son trafic via Prometheus et orchestre la réponse
-aux anomalies.</p>
+      <div class="grid2">
+        <div class="box info">
+          <h4>Kong — Data plane</h4>
+          <p class="small">
+            Kong 3.9.1 en mode base PostgreSQL, plugin Prometheus activé,
+            configuration de bootstrap déclarative (<code>kong.yaml</code>).
+            Aucun code métier n'est embarqué dans Kong.
+          </p>
+        </div>
+        <div class="box ok">
+          <h4>gong-core — Control plane</h4>
+          <p class="small">
+            Application NestJS unique : configure Kong via son Admin API, lit
+            les métriques exposées à Prometheus, applique des règles d'anomalie,
+            ouvre des incidents collaboratifs et notifie les canaux externes
+            (Slack, Discord).
+          </p>
+        </div>
+      </div>
 
-<div class="grid2">
-  <div class="box info">
-    <h4>Kong — Data plane</h4>
-    <p class="small">Kong 3.9.1 en mode base PostgreSQL, plugin Prometheus activé,
-    configuration de bootstrap déclarative (<code>kong.yaml</code>). Aucun code métier
-    n'est embarqué dans Kong.</p>
-  </div>
-  <div class="box ok">
-    <h4>sentinel-core — Control plane</h4>
-    <p class="small">Application NestJS unique : configure Kong via son Admin API, lit
-    les métriques exposées à Prometheus, applique des règles d'anomalie, ouvre des
-    incidents collaboratifs et notifie les canaux externes (Slack, Discord).</p>
-  </div>
-</div>
+      <h3>Objectifs concrets du produit</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 22%">Objectif</th>
+            <th>Ce que Gong apporte</th>
+            <th style="width: 24%">Module porteur</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Configurer Kong</strong></td>
+            <td>
+              API REST + GraphQL pour CRUD des services, routes, plugins et
+              consumers, sans utiliser l'Admin API à la main.
+            </td>
+            <td><code>GatewayModule</code></td>
+          </tr>
+          <tr>
+            <td><strong>Mesurer</strong></td>
+            <td>
+              Polling périodique des requêtes / latences / statuts Kong exposés
+              à Prometheus, cache local par scope.
+            </td>
+            <td><code>MetricsModule</code></td>
+          </tr>
+          <tr>
+            <td><strong>Détecter</strong></td>
+            <td>
+              Règles d'anomalie configurables (error-rate, latence p95, santé
+              upstream) avec cooldown.
+            </td>
+            <td><code>MonitoringModule</code></td>
+          </tr>
+          <tr>
+            <td><strong>Coordonner</strong></td>
+            <td>
+              Incidents persistés, salle WebSocket avec présence, journal
+              d'actions, SSE de notification.
+            </td>
+            <td><code>IncidentsModule</code></td>
+          </tr>
+          <tr>
+            <td><strong>Notifier</strong></td>
+            <td>
+              Webhooks sortants typés Slack / Discord / Generic, signature HMAC,
+              deliveries journalisées.
+            </td>
+            <td><code>WebhooksModule</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
 
-<h3>Objectifs concrets du produit</h3>
-<table>
-<thead><tr><th style="width:22%">Objectif</th><th>Ce que Sentinel apporte</th><th style="width:24%">Module porteur</th></tr></thead>
-<tbody>
-<tr><td><strong>Configurer Kong</strong></td><td>API REST + GraphQL pour CRUD des services, routes, plugins et consumers, sans utiliser l'Admin API à la main.</td><td><code>GatewayModule</code></td></tr>
-<tr><td><strong>Mesurer</strong></td><td>Polling périodique des requêtes / latences / statuts Kong exposés à Prometheus, cache local par scope.</td><td><code>MetricsModule</code></td></tr>
-<tr><td><strong>Détecter</strong></td><td>Règles d'anomalie configurables (error-rate, latence p95, santé upstream) avec cooldown.</td><td><code>MonitoringModule</code></td></tr>
-<tr><td><strong>Coordonner</strong></td><td>Incidents persistés, salle WebSocket avec présence, journal d'actions, SSE de notification.</td><td><code>IncidentsModule</code></td></tr>
-<tr><td><strong>Notifier</strong></td><td>Webhooks sortants typés Slack / Discord / Generic, signature HMAC, deliveries journalisées.</td><td><code>WebhooksModule</code></td></tr>
-</tbody>
-</table>
-</section>
+    <section>
+      <span class="slide-tag">Slide 02</span>
+      <h2 id="sect-1-2">1.2 — Périmètre actuel</h2>
+      <div class="grid2">
+        <div>
+          <h4 style="color: var(--green)">Dans le périmètre</h4>
+          <ul class="small">
+            <li>
+              CRUD complet des services, routes, plugins et consumers Kong via
+              l'Admin API.
+            </li>
+            <li>
+              Polling Prometheus toutes les 15 s et cache par scope (consumer ×
+              service).
+            </li>
+            <li>
+              Règles de monitoring CRUD avec types <code>ERROR_RATE</code>,
+              <code>LATENCY_P95</code>, <code>UPSTREAM_HEALTH</code>.
+            </li>
+            <li>
+              Création automatique d'incidents sur
+              <code>monitoring.threshold.exceeded</code>.
+            </li>
+            <li>
+              Salle d'incident WebSocket (présence, chat, ack, resolve) et SSE
+              <code>incident.created</code>.
+            </li>
+            <li>
+              Webhooks sortants Slack / Discord / Generic, signature HMAC,
+              retries avec backoff.
+            </li>
+            <li>
+              Callback Meta Messenger entrant (vérification + ingestion en
+              mémoire).
+            </li>
+            <li>
+              API GraphQL Apollo couvrant gateway, incidents, monitoring,
+              métriques, webhooks.
+            </li>
+            <li>
+              Authentification JWT et secret CEO pour les actions sensibles.
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="color: var(--red)">Hors périmètre</h4>
+          <ul class="small">
+            <li>
+              Gestion de providers LLM (OpenAI, Gemini, etc.) et calcul de coûts
+              par tokens.
+            </li>
+            <li>Détection de prompts répétés et estimation de gaspillage.</li>
+            <li>Moteur de fallback automatique entre providers.</li>
+            <li>Budgets mensuels par service ou par provider.</li>
+            <li>Chiffrement AES-256-GCM des secrets de provider.</li>
+            <li>
+              Streaming SSE des métriques (seul
+              <code>incident.created</code> est diffusé en SSE).
+            </li>
+            <li>Auto-résolution d'incident sans erreur pendant 5 minutes.</li>
+            <li>Redis Pub/Sub pour scaling multi-instances.</li>
+            <li>
+              Persistance des webhooks et messenger events (V1 en mémoire).
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
 
-<section>
-<span class="slide-tag">Slide 02</span>
-<h2 id="sect-1-2">1.2 — Périmètre actuel</h2>
-<div class="grid2">
-  <div>
-    <h4 style="color:var(--green)">Dans le périmètre</h4>
-    <ul class="small">
-      <li>CRUD complet des services, routes, plugins et consumers Kong via l'Admin API.</li>
-      <li>Polling Prometheus toutes les 15 s et cache par scope (consumer × service).</li>
-      <li>Règles de monitoring CRUD avec types <code>ERROR_RATE</code>, <code>LATENCY_P95</code>, <code>UPSTREAM_HEALTH</code>.</li>
-      <li>Création automatique d'incidents sur <code>monitoring.threshold.exceeded</code>.</li>
-      <li>Salle d'incident WebSocket (présence, chat, ack, resolve) et SSE <code>incident.created</code>.</li>
-      <li>Webhooks sortants Slack / Discord / Generic, signature HMAC, retries avec backoff.</li>
-      <li>Callback Meta Messenger entrant (vérification + ingestion en mémoire).</li>
-      <li>API GraphQL Apollo couvrant gateway, incidents, monitoring, métriques, webhooks.</li>
-      <li>Authentification JWT et secret CEO pour les actions sensibles.</li>
-    </ul>
-  </div>
-  <div>
-    <h4 style="color:var(--red)">Hors périmètre</h4>
-    <ul class="small">
-      <li>Gestion de providers LLM (OpenAI, Gemini, etc.) et calcul de coûts par tokens.</li>
-      <li>Détection de prompts répétés et estimation de gaspillage.</li>
-      <li>Moteur de fallback automatique entre providers.</li>
-      <li>Budgets mensuels par service ou par provider.</li>
-      <li>Chiffrement AES-256-GCM des secrets de provider.</li>
-      <li>Streaming SSE des métriques (seul <code>incident.created</code> est diffusé en SSE).</li>
-      <li>Auto-résolution d'incident sans erreur pendant 5 minutes.</li>
-      <li>Redis Pub/Sub pour scaling multi-instances.</li>
-      <li>Persistance des webhooks et messenger events (V1 en mémoire).</li>
-    </ul>
-  </div>
-</div>
-</section>
+    <section>
+      <span class="slide-tag">Slide 03</span>
+      <h2 id="sect-1-3">1.3 — Acteur unique : l'Admin</h2>
+      <p>
+        Gong ne reconnaît qu'un seul rôle : l'<strong>Admin</strong>. Toute
+        personne authentifiée a les mêmes droits, à l'exception des actions de
+        désactivation d'un autre admin qui exigent en plus le
+        <strong>CEO secret</strong>.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 18%">Acteur</th>
+            <th>Description</th>
+            <th style="width: 34%">Interactions principales</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Admin</strong></td>
+            <td>Ingénieur plateforme / SRE chargé de la supervision Kong.</td>
+            <td>
+              Configure Kong, gère les règles de monitoring, rejoint les salles
+              d'incident, configure les webhooks.
+            </td>
+          </tr>
+          <tr>
+            <td>Kong <span class="small">(système)</span></td>
+            <td>Data plane proxifiant le trafic.</td>
+            <td>
+              Expose ses métriques à Prometheus via le plugin
+              <code>prometheus</code>.
+            </td>
+          </tr>
+          <tr>
+            <td>Prometheus <span class="small">(système)</span></td>
+            <td>Source de métriques.</td>
+            <td>
+              Scrape Kong toutes les 15 s ; interrogé par
+              <code>MetricsService</code>.
+            </td>
+          </tr>
+          <tr>
+            <td>Externes</td>
+            <td>Destinataires des notifications.</td>
+            <td>Slack, Discord et tout webhook <code>GENERIC</code>.</td>
+          </tr>
+          <tr>
+            <td>Meta Messenger</td>
+            <td>Émetteur de callbacks entrants.</td>
+            <td>
+              Vérification du token + livraison d'événements à
+              <code>/messenger/webhook</code>.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="box info">
+        <p class="small">
+          <strong>Conséquence architecturale.</strong>
+          <code>AuthModule</code> implémente une auth JWT simple ; les actions
+          sensibles (suppression d'un admin) exigent en plus
+          <code>CeoSecretService.validateOrThrow</code>. Pas de matrice RBAC à
+          ce stade.
+        </p>
+      </div>
+    </section>
 
-<section>
-<span class="slide-tag">Slide 03</span>
-<h2 id="sect-1-3">1.3 — Acteur unique : l'Admin</h2>
-<p>Sentinel ne reconnaît qu'un seul rôle : l'<strong>Admin</strong>. Toute personne
-authentifiée a les mêmes droits, à l'exception des actions de désactivation d'un autre
-admin qui exigent en plus le <strong>CEO secret</strong>.</p>
-<table>
-<thead><tr><th style="width:18%">Acteur</th><th>Description</th><th style="width:34%">Interactions principales</th></tr></thead>
-<tbody>
-<tr><td><strong>Admin</strong></td><td>Ingénieur plateforme / SRE chargé de la supervision Kong.</td><td>Configure Kong, gère les règles de monitoring, rejoint les salles d'incident, configure les webhooks.</td></tr>
-<tr><td>Kong <span class="small">(système)</span></td><td>Data plane proxifiant le trafic.</td><td>Expose ses métriques à Prometheus via le plugin <code>prometheus</code>.</td></tr>
-<tr><td>Prometheus <span class="small">(système)</span></td><td>Source de métriques.</td><td>Scrape Kong toutes les 15 s ; interrogé par <code>MetricsService</code>.</td></tr>
-<tr><td>Externes</td><td>Destinataires des notifications.</td><td>Slack, Discord et tout webhook <code>GENERIC</code>.</td></tr>
-<tr><td>Meta Messenger</td><td>Émetteur de callbacks entrants.</td><td>Vérification du token + livraison d'événements à <code>/messenger/webhook</code>.</td></tr>
-</tbody>
-</table>
-<div class="box info"><p class="small"><strong>Conséquence architecturale.</strong>
-<code>AuthModule</code> implémente une auth JWT simple ; les actions sensibles (suppression
-d'un admin) exigent en plus <code>CeoSecretService.validateOrThrow</code>. Pas de matrice
-RBAC à ce stade.</p></div>
-</section>
+    <section>
+      <span class="slide-tag">Slide 04</span>
+      <h2 id="sect-1-4">1.4 — Surface fonctionnelle livrée</h2>
+      <p class="lead">
+        Récapitulatif des endpoints exposés. Toutes les routes REST métier sont
+        protégées par <code>JwtAuthGuard</code>, sauf
+        <code>/webhooks/emit</code> (contrat interne) et
+        <code>/messenger/webhook</code> (callback Meta).
+      </p>
 
-<section>
-<span class="slide-tag">Slide 04</span>
-<h2 id="sect-1-4">1.4 — Surface fonctionnelle livrée</h2>
-<p class="lead">Récapitulatif des endpoints exposés. Toutes les routes REST métier sont
-protégées par <code>JwtAuthGuard</code>, sauf <code>/webhooks/emit</code> (contrat
-interne) et <code>/messenger/webhook</code> (callback Meta).</p>
+      <h3>REST</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 24%">Domaine</th>
+            <th>Endpoints clés</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Auth</strong></td>
+            <td>
+              <code>POST /auth/register</code> · <code>POST /auth/login</code> ·
+              <code>GET /auth/me</code> · <code>POST /auth/logout</code> ·
+              <code>GET /auth/admins</code> ·
+              <code>DELETE /auth/admins/:id</code>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Gateway (Kong)</strong></td>
+            <td>
+              <code>… /gateway/services</code> ·
+              <code>… /gateway/services/:id/api-key</code> ·
+              <code>… /gateway/services/:id/header</code> ·
+              <code>… /gateway/services/:id/routes</code> ·
+              <code>… /gateway/routes</code> ·
+              <code>… /gateway/consumers</code> ·
+              <code>POST /gateway/routes/:routeId/consumers/:consumerId</code>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Monitoring</strong></td>
+            <td>
+              <code>… /monitoring/rules</code> ·
+              <code>POST /monitoring/check</code> ·
+              <code>GET /monitoring/status</code>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Incidents</strong></td>
+            <td>
+              <code>POST /incidents</code> · <code>GET /incidents</code> ·
+              <code>GET /incidents/:id</code> · <code>SSE /incidents/sse</code>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Webhooks</strong></td>
+            <td>
+              <code>… /webhooks</code> ·
+              <code>GET /webhooks/event-types</code> ·
+              <code>POST /webhooks/emit</code> ·
+              <code>POST /webhooks/:id/test</code> ·
+              <code>GET /webhook-deliveries</code>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Messenger (inbound)</strong></td>
+            <td>
+              <code>GET /messenger/webhook</code> (vérif) ·
+              <code>POST /messenger/webhook</code> ·
+              <code>GET /messenger/events</code> ·
+              <code>GET /messenger/recipients</code>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-<h3>REST</h3>
-<table>
-<thead><tr><th style="width:24%">Domaine</th><th>Endpoints clés</th></tr></thead>
-<tbody>
-<tr><td><strong>Auth</strong></td><td><code>POST /auth/register</code> · <code>POST /auth/login</code> · <code>GET /auth/me</code> · <code>POST /auth/logout</code> · <code>GET /auth/admins</code> · <code>DELETE /auth/admins/:id</code></td></tr>
-<tr><td><strong>Gateway (Kong)</strong></td><td><code>… /gateway/services</code> · <code>… /gateway/services/:id/api-key</code> · <code>… /gateway/services/:id/header</code> · <code>… /gateway/services/:id/routes</code> · <code>… /gateway/routes</code> · <code>… /gateway/consumers</code> · <code>POST /gateway/routes/:routeId/consumers/:consumerId</code></td></tr>
-<tr><td><strong>Monitoring</strong></td><td><code>… /monitoring/rules</code> · <code>POST /monitoring/check</code> · <code>GET /monitoring/status</code></td></tr>
-<tr><td><strong>Incidents</strong></td><td><code>POST /incidents</code> · <code>GET /incidents</code> · <code>GET /incidents/:id</code> · <code>SSE /incidents/sse</code></td></tr>
-<tr><td><strong>Webhooks</strong></td><td><code>… /webhooks</code> · <code>GET /webhooks/event-types</code> · <code>POST /webhooks/emit</code> · <code>POST /webhooks/:id/test</code> · <code>GET /webhook-deliveries</code></td></tr>
-<tr><td><strong>Messenger (inbound)</strong></td><td><code>GET /messenger/webhook</code> (vérif) · <code>POST /messenger/webhook</code> · <code>GET /messenger/events</code> · <code>GET /messenger/recipients</code></td></tr>
-</tbody>
-</table>
+      <h3>GraphQL</h3>
+      <p>
+        Un seul résolveur <code>SentinelGraphqlResolver</code> agrège toute la
+        surface métier sous Apollo, protégée par <code>GqlJwtAuthGuard</code>.
+        Les opérations principales :
+      </p>
+      <div class="cardrow">
+        <div class="card accent">
+          <b>dashboardOverview</b>Profil courant, incidents ouverts, dernier
+          rapport de monitoring, services Kong.
+        </div>
+        <div class="card accent">
+          <b>gatewayServices / gatewayRoutes / gatewayConsumers</b>CRUD complet,
+          ajout de clé API, ajout de header de service.
+        </div>
+        <div class="card accent">
+          <b>incidents / createIncident / sendIncidentMessage</b>Incidents +
+          mutations <code>ackIncident</code>, <code>resolveIncident</code>.
+        </div>
+        <div class="card accent">
+          <b>monitoringRules + runMonitoringCheck</b>CRUD de règles et
+          déclenchement manuel.
+        </div>
+        <div class="card accent">
+          <b>gatewayMetrics / latestGatewayMetrics / serviceHealth</b>Requêtes
+          Prometheus normalisées.
+        </div>
+        <div class="card accent">
+          <b>webhooks / testWebhook / emitWebhookEvent</b>CRUD + déclenchement
+          d'événements et historique des deliveries.
+        </div>
+      </div>
 
-<h3>GraphQL</h3>
-<p>Un seul résolveur <code>SentinelGraphqlResolver</code> agrège toute la surface
-métier sous Apollo, protégée par <code>GqlJwtAuthGuard</code>. Les opérations
-principales :</p>
-<div class="cardrow">
-  <div class="card accent"><b>dashboardOverview</b>Profil courant, incidents ouverts, dernier rapport de monitoring, services Kong.</div>
-  <div class="card accent"><b>gatewayServices / gatewayRoutes / gatewayConsumers</b>CRUD complet, ajout de clé API, ajout de header de service.</div>
-  <div class="card accent"><b>incidents / createIncident / sendIncidentMessage</b>Incidents + mutations <code>ackIncident</code>, <code>resolveIncident</code>.</div>
-  <div class="card accent"><b>monitoringRules + runMonitoringCheck</b>CRUD de règles et déclenchement manuel.</div>
-  <div class="card accent"><b>gatewayMetrics / latestGatewayMetrics / serviceHealth</b>Requêtes Prometheus normalisées.</div>
-  <div class="card accent"><b>webhooks / testWebhook / emitWebhookEvent</b>CRUD + déclenchement d'événements et historique des deliveries.</div>
-</div>
+      <h3>Temps réel</h3>
+      <div class="grid2">
+        <div class="box">
+          <h4>WebSocket — <code>/incident-room</code></h4>
+          <p class="small">
+            Événements <code>joinIncident</code>, <code>leaveIncident</code>,
+            <code>sendMessage</code>, <code>ackIncident</code>,
+            <code>resolveIncident</code> ; diffusion
+            <code>incidentJoined</code>, <code>incidentMessage</code>,
+            <code>incidentUpdated</code>, <code>presenceUpdated</code>,
+            <code>incidentError</code>.
+          </p>
+        </div>
+        <div class="box">
+          <h4>SSE — <code>GET /incidents/sse</code></h4>
+          <p class="small">
+            Flux <code>incident-created</code> ; permet à un dashboard non-WS de
+            réagir à la création d'un incident sans rejoindre la salle.
+          </p>
+        </div>
+      </div>
+    </section>
 
-<h3>Temps réel</h3>
-<div class="grid2">
-  <div class="box"><h4>WebSocket — <code>/incident-room</code></h4>
-  <p class="small">Événements <code>joinIncident</code>, <code>leaveIncident</code>,
-  <code>sendMessage</code>, <code>ackIncident</code>, <code>resolveIncident</code> ;
-  diffusion <code>incidentJoined</code>, <code>incidentMessage</code>,
-  <code>incidentUpdated</code>, <code>presenceUpdated</code>, <code>incidentError</code>.</p></div>
-  <div class="box"><h4>SSE — <code>GET /incidents/sse</code></h4>
-  <p class="small">Flux <code>incident-created</code> ; permet à un dashboard non-WS de
-  réagir à la création d'un incident sans rejoindre la salle.</p></div>
-</div>
-</section>
+    <section>
+      <span class="slide-tag">Slide 05</span>
+      <h2 id="sect-1-5">1.5 — Critères d'acceptation MVP</h2>
+      <p class="lead">
+        Le MVP est accepté lorsque l'ensemble est démontrable de bout en bout
+        via <code>docker compose up</code> et le scénario §3.4.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 10%">Code</th>
+            <th>Critère</th>
+            <th style="width: 18%">Module(s)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>AC-01</strong></td>
+            <td>
+              Kong démarre via Docker Compose avec ses migrations, plugin
+              Prometheus activé, et la config <code>kong.yaml</code> appliquée
+              par <code>deck gateway sync</code>.
+            </td>
+            <td>Compose + <code>kong.yaml</code></td>
+          </tr>
+          <tr>
+            <td><strong>AC-02</strong></td>
+            <td>
+              Gong expose un CRUD REST + GraphQL sur les services, routes et
+              consumers Kong (création/suppression visibles sur l'Admin API).
+            </td>
+            <td>GatewayModule</td>
+          </tr>
+          <tr>
+            <td><strong>AC-03</strong></td>
+            <td>
+              Prometheus scrape <code>kong:8001/metrics</code> ;
+              <code>MetricsService</code> retourne <code>totalRequests</code>,
+              <code>statusCodes</code>, latences p50/p95/p99.
+            </td>
+            <td>MetricsModule</td>
+          </tr>
+          <tr>
+            <td><strong>AC-04</strong></td>
+            <td>
+              Une règle <code>ERROR_RATE</code> qui dépasse son seuil déclenche
+              un incident, persisté en base et notifié par WebSocket +
+              Slack/Discord si configurés.
+            </td>
+            <td>Monitoring + Incidents + Webhooks</td>
+          </tr>
+          <tr>
+            <td><strong>AC-05</strong></td>
+            <td>
+              Deux clients WebSocket dans <code>/incident-room</code> voient la
+              présence l'un de l'autre, échangent des messages, puis acquittent
+              et résolvent l'incident.
+            </td>
+            <td>IncidentsModule</td>
+          </tr>
+          <tr>
+            <td><strong>AC-06</strong></td>
+            <td>
+              L'API GraphQL répond à <code>dashboardOverview</code> en un appel
+              couvrant moi, incidents ouverts, dernier rapport de monitoring et
+              services Kong.
+            </td>
+            <td>SentinelGraphqlModule</td>
+          </tr>
+          <tr>
+            <td><strong>AC-07</strong></td>
+            <td>
+              Un webhook Slack ou Discord configuré reçoit un payload
+              <code>INCIDENT_CREATED</code> formaté correctement après ouverture
+              d'un incident.
+            </td>
+            <td>WebhooksModule</td>
+          </tr>
+          <tr>
+            <td><strong>AC-08</strong></td>
+            <td>
+              Meta Messenger valide le callback (<code>hub.challenge</code>) et
+              les événements inbound apparaissent dans
+              <code>GET /messenger/events</code>.
+            </td>
+            <td>MessengerModule</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
 
-<section>
-<span class="slide-tag">Slide 05</span>
-<h2 id="sect-1-5">1.5 — Critères d'acceptation MVP</h2>
-<p class="lead">Le MVP est accepté lorsque l'ensemble est démontrable de bout en bout via
-<code>docker compose up</code> et le scénario §3.4.</p>
-<table>
-<thead><tr><th style="width:10%">Code</th><th>Critère</th><th style="width:18%">Module(s)</th></tr></thead>
-<tbody>
-<tr><td><strong>AC-01</strong></td><td>Kong démarre via Docker Compose avec ses migrations, plugin Prometheus activé, et la config <code>kong.yaml</code> appliquée par <code>deck gateway sync</code>.</td><td>Compose + <code>kong.yaml</code></td></tr>
-<tr><td><strong>AC-02</strong></td><td>Sentinel expose un CRUD REST + GraphQL sur les services, routes et consumers Kong (création/suppression visibles sur l'Admin API).</td><td>GatewayModule</td></tr>
-<tr><td><strong>AC-03</strong></td><td>Prometheus scrape <code>kong:8001/metrics</code> ; <code>MetricsService</code> retourne <code>totalRequests</code>, <code>statusCodes</code>, latences p50/p95/p99.</td><td>MetricsModule</td></tr>
-<tr><td><strong>AC-04</strong></td><td>Une règle <code>ERROR_RATE</code> qui dépasse son seuil déclenche un incident, persisté en base et notifié par WebSocket + Slack/Discord si configurés.</td><td>Monitoring + Incidents + Webhooks</td></tr>
-<tr><td><strong>AC-05</strong></td><td>Deux clients WebSocket dans <code>/incident-room</code> voient la présence l'un de l'autre, échangent des messages, puis acquittent et résolvent l'incident.</td><td>IncidentsModule</td></tr>
-<tr><td><strong>AC-06</strong></td><td>L'API GraphQL répond à <code>dashboardOverview</code> en un appel couvrant moi, incidents ouverts, dernier rapport de monitoring et services Kong.</td><td>SentinelGraphqlModule</td></tr>
-<tr><td><strong>AC-07</strong></td><td>Un webhook Slack ou Discord configuré reçoit un payload <code>INCIDENT_CREATED</code> formaté correctement après ouverture d'un incident.</td><td>WebhooksModule</td></tr>
-<tr><td><strong>AC-08</strong></td><td>Meta Messenger valide le callback (<code>hub.challenge</code>) et les événements inbound apparaissent dans <code>GET /messenger/events</code>.</td><td>MessengerModule</td></tr>
-</tbody>
-</table>
-</section>
+    <!-- ================= PARTIE II ================= -->
+    <div class="part-title">
+      <div class="k">Partie II</div>
+      <h1>Architecture en place</h1>
+      <div class="sub">
+        Composants déployés, modules métier, flux d'événements et entités
+        réellement persistées par <code>gong-core</code>.
+      </div>
+    </div>
 
-<!-- ================= PARTIE II ================= -->
-<div class="part-title">
-  <div class="k">Partie II</div>
-  <h1>Architecture en place</h1>
-  <div class="sub">Composants déployés, modules métier, flux d'événements et entités
-  réellement persistées par <code>sentinel-core</code>.</div>
-</div>
-
-<section>
-<span class="slide-tag">Slide 06</span>
-<h2 id="sect-2-1">2.1 — Vue d'ensemble système</h2>
-<div class="diagram">
-<pre class="mermaid">
+    <section>
+      <span class="slide-tag">Slide 06</span>
+      <h2 id="sect-2-1">2.1 — Vue d'ensemble système</h2>
+      <div class="diagram">
+        <pre class="mermaid">
 flowchart LR
   ADMIN["Admin / Dashboard"]
   META["Meta Messenger"]
@@ -391,8 +1093,8 @@ flowchart LR
     KONG["Kong 3.9<br/>proxy + admin API"]
     KDB[("Kong DB<br/>Postgres 15")]
     PROM["Prometheus<br/>scrape kong:8001"]
-    CORE["sentinel-core<br/>NestJS app"]
-    SDB[("Sentinel DB<br/>Postgres 15")]
+    CORE["gong-core<br/>NestJS app"]
+    SDB[("Gong DB<br/>Postgres 15")]
     BAD["Bad services<br/>limit-exceeded / provider-dead"]
   end
 
@@ -410,43 +1112,108 @@ flowchart LR
   CORE -->|HMAC signed POST| EXT
   META -->|callback| CORE
 </pre>
-<div class="cap">Figure 1 — Composants Docker, flux d'admin, flux d'observation et flux de notification.</div>
-</div>
-<div class="cardrow">
-  <div class="card"><b>Source de vérité</b>La configuration Kong est l'autorité ; Sentinel s'aligne via l'Admin API.</div>
-  <div class="card"><b>Métriques</b>Prometheus scrape Kong ; Sentinel pose des PromQL pour exploiter les compteurs.</div>
-  <div class="card"><b>Notifications</b>Sentinel pousse vers Slack, Discord ou tout endpoint <code>GENERIC</code>.</div>
-</div>
-</section>
+        <div class="cap">
+          Figure 1 — Composants Docker, flux d'admin, flux d'observation et flux
+          de notification.
+        </div>
+      </div>
+      <div class="cardrow">
+        <div class="card">
+          <b>Source de vérité</b>La configuration Kong est l'autorité ; Gong
+          s'aligne via l'Admin API.
+        </div>
+        <div class="card">
+          <b>Métriques</b>Prometheus scrape Kong ; Gong pose des PromQL pour
+          exploiter les compteurs.
+        </div>
+        <div class="card">
+          <b>Notifications</b>Gong pousse vers Slack, Discord ou tout
+          endpoint <code>GENERIC</code>.
+        </div>
+      </div>
+    </section>
 
-<section>
-<span class="slide-tag">Slide 07</span>
-<h2 id="sect-2-2">2.2 — Découpage du projet</h2>
-<p>Sentinel est implémenté en <strong>application NestJS unique</strong>
-(<code>sentinel-core</code>), complétée par un frontend React + Vite dédié à la salle
-d'incident (<code>incident-room</code>), compilé puis servi statiquement par NestJS
-sous <code>sentinel-core/public/</code>.</p>
+    <section>
+      <span class="slide-tag">Slide 07</span>
+      <h2 id="sect-2-2">2.2 — Découpage du projet</h2>
+      <p>
+        Gong est implémenté en
+        <strong>application NestJS unique</strong> (<code>gong-core</code>),
+        complétée par un frontend React + Vite dédié à la salle d'incident
+        (<code>incident-room</code>), compilé puis servi statiquement par NestJS
+        sous <code>gong-core/public/</code>.
+      </p>
 
-<h3>Composants déployables</h3>
-<table>
-<thead><tr><th style="width:22%">Composant</th><th>Responsabilité</th><th style="width:24%">Stack</th></tr></thead>
-<tbody>
-<tr><td><code>sentinel-core</code></td><td>API NestJS unifiée : REST, GraphQL, WebSocket incident room, SSE incident, polling Prometheus, fan-out webhooks.</td><td>NestJS 11 · Apollo · Socket.io · TypeORM</td></tr>
-<tr><td><code>incident-room</code></td><td>Mini-SPA React + Vite consommant <code>/incident-room</code> Socket.io ; build injecté dans <code>sentinel-core/public/incident-room/</code>.</td><td>React · Vite · Socket.io client</td></tr>
-<tr><td><code>kong</code></td><td>Conteneur Kong 3.9.1 (DB Postgres) avec plugin Prometheus bundled, config <code>kong.yaml</code> appliquée par <code>kong/deck</code>.</td><td>Kong + Postgres 15</td></tr>
-<tr><td><code>prometheus</code></td><td>Scrape <code>kong:8001/metrics</code> toutes les 15 s, règles d'agrégation dans <code>rules.yml</code>.</td><td>Prometheus</td></tr>
-<tr><td><code>sentinel-database</code></td><td>Postgres 15 dédié, autoload des entités TypeORM, <code>synchronize: true</code>.</td><td>Postgres 15</td></tr>
-<tr><td><code>limit-exceeded</code> · <code>provider-dead</code></td><td>Mock services Node simulant erreurs / pannes, pour reproduire des incidents en démo.</td><td>Node 18</td></tr>
-</tbody>
-</table>
-</section>
+      <h3>Composants déployables</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 22%">Composant</th>
+            <th>Responsabilité</th>
+            <th style="width: 24%">Stack</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>gong-core</code></td>
+            <td>
+              API NestJS unifiée : REST, GraphQL, WebSocket incident room, SSE
+              incident, polling Prometheus, fan-out webhooks.
+            </td>
+            <td>NestJS 11 · Apollo · Socket.io · TypeORM</td>
+          </tr>
+          <tr>
+            <td><code>incident-room</code></td>
+            <td>
+              Mini-SPA React + Vite consommant
+              <code>/incident-room</code> Socket.io ; build injecté dans
+              <code>gong-core/public/incident-room/</code>.
+            </td>
+            <td>React · Vite · Socket.io client</td>
+          </tr>
+          <tr>
+            <td><code>kong</code></td>
+            <td>
+              Conteneur Kong 3.9.1 (DB Postgres) avec plugin Prometheus bundled,
+              config <code>kong.yaml</code> appliquée par
+              <code>kong/deck</code>.
+            </td>
+            <td>Kong + Postgres 15</td>
+          </tr>
+          <tr>
+            <td><code>prometheus</code></td>
+            <td>
+              Scrape <code>kong:8001/metrics</code> toutes les 15 s, règles
+              d'agrégation dans <code>rules.yml</code>.
+            </td>
+            <td>Prometheus</td>
+          </tr>
+          <tr>
+            <td><code>gong-database</code></td>
+            <td>
+              Postgres 15 dédié, autoload des entités TypeORM,
+              <code>synchronize: true</code>.
+            </td>
+            <td>Postgres 15</td>
+          </tr>
+          <tr>
+            <td><code>limit-exceeded</code> · <code>provider-dead</code></td>
+            <td>
+              Mock services Node simulant erreurs / pannes, pour reproduire des
+              incidents en démo.
+            </td>
+            <td>Node 18</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
 
-<section class="page-break">
-<span class="slide-tag">Slide 08</span>
-<h2 id="sect-2-3">2.3 — Hiérarchie complète</h2>
-<pre><span class="c"># Arborescence réelle du dépôt</span>
-sentinel-gateway/
-├── <span class="k">sentinel-core/</span>                    <span class="c"># Application NestJS unique</span>
+    <section class="page-break">
+      <span class="slide-tag">Slide 08</span>
+      <h2 id="sect-2-3">2.3 — Hiérarchie complète</h2>
+      <pre><span class="c"># Arborescence réelle du dépôt</span>
+gong-gateway/
+├── <span class="k">gong-core/</span>                    <span class="c"># Application NestJS unique</span>
 │   ├── src/
 │   │   ├── main.ts
 │   │   ├── app.module.ts
@@ -503,50 +1270,146 @@ sentinel-gateway/
 │   ├── src/{App.tsx,main.tsx,styles.css}
 │   └── vite.config.ts
 │
-├── docker-compose.yml                <span class="c"># Kong + Postgres × 2 + Prometheus + sentinel + bad-services</span>
+├── docker-compose.yml                <span class="c"># Kong + Postgres × 2 + Prometheus + gong + bad-services</span>
 ├── kong.yaml                         <span class="c"># config Kong déclarative (plugin prometheus)</span>
 ├── prometheus.yml                    <span class="c"># scrape kong:8001/metrics</span>
 ├── rules.yml                         <span class="c"># records agrégés (rate5m, errors:rate5m, latency:p95)</span>
 └── README.md
 </pre>
-<div class="box"><p class="small"><strong>Convention.</strong> Modules NestJS en
-<code>PascalCase</code>, fichiers en <code>kebab-case</code>, un dossier par sous-domaine
-fonctionnel. La salle d'incident React est compilée et injectée dans
-<code>sentinel-core/public/</code> via <code>npm run generate:incident-room</code>.</p></div>
-</section>
+      <div class="box">
+        <p class="small">
+          <strong>Convention.</strong> Modules NestJS en
+          <code>PascalCase</code>, fichiers en <code>kebab-case</code>, un
+          dossier par sous-domaine fonctionnel. La salle d'incident React est
+          compilée et injectée dans <code>gong-core/public/</code> via
+          <code>npm run generate:incident-room</code>.
+        </p>
+      </div>
+    </section>
 
-<section>
-<span class="slide-tag">Slide 09</span>
-<h2 id="sect-2-4">2.4 — Modules NestJS et responsabilités</h2>
-<p>Les modules sont indépendants et communiquent par
-<code>@nestjs/event-emitter</code>. Chacun publie ses providers via son module NestJS ;
-la documentation détaillée vit dans <code>sentinel-core/docs/</code>.</p>
-<table>
-<thead><tr><th style="width:22%">Module</th><th>Responsabilité</th><th style="width:18%">Persistance</th></tr></thead>
-<tbody>
-<tr><td><code>GatewayModule</code></td><td>Wrapper de l'Admin API Kong (services, routes, plugins, consumers) via SDK généré <code>kong-client</code>.</td><td>Kong (externe)</td></tr>
-<tr><td><code>MetricsModule</code></td><td>Polling Prometheus toutes les 15 s, cache par scope, détection naïve de santé (≥ 10 fenêtres consécutives avec 5xx / 429 → service dégradé). Émet <code>metrics.updated</code>, <code>metrics.poll.failed</code>, <code>health.changed</code>.</td><td>Mémoire</td></tr>
-<tr><td><code>MonitoringModule</code></td><td>CRUD de règles (<code>ERROR_RATE</code>, <code>LATENCY_P95</code>, <code>UPSTREAM_HEALTH</code>), checks planifiés et manuels, cooldown par règle. Émet <code>monitoring.threshold.exceeded</code>.</td><td>Postgres</td></tr>
-<tr><td><code>IncidentsModule</code></td><td>Création d'incident sur <code>monitoring.threshold.exceeded</code>, salle WebSocket <code>/incident-room</code>, journal d'actions, snapshot SSE. Émet <code>incident.created</code>.</td><td>Postgres</td></tr>
-<tr><td><code>WebhooksModule</code></td><td>Façade sortante Generic / Discord / Slack via formatters dédiés, signature HMAC optionnelle, retries avec backoff, deliveries journalisées. Listener <code>incident-created</code>.</td><td>Mémoire</td></tr>
-<tr><td><code>MessengerModule</code></td><td>Callback Meta entrant : vérification du token, stockage des événements et PSIDs.</td><td>Mémoire</td></tr>
-<tr><td><code>SentinelGraphqlModule</code></td><td>Schéma Apollo unique exposant gateway, monitoring, incidents, métriques, webhooks et messenger.</td><td>—</td></tr>
-<tr><td><code>AuthModule</code></td><td>JWT (Passport), guard, <code>CeoSecretService</code> pour les actions de désactivation.</td><td>Postgres</td></tr>
-<tr><td><code>UsersModule</code></td><td>Référentiel des admins (email, mot de passe haché, rôle, statut).</td><td>Postgres</td></tr>
-<tr><td><code>CommonModule</code></td><td>Services transverses : <code>GenericService</code>, notifications, sanitisation.</td><td>—</td></tr>
-</tbody>
-</table>
-<div class="box info"><p class="small"><strong>Chaîne nominale.</strong>
-<code>Prometheus → MetricsModule → MonitoringModule → IncidentsModule → WebhooksModule</code>.
-Aucun module n'appelle directement le service d'un autre : ils s'écoutent via
-<code>EventEmitter2</code>.</p></div>
-</section>
+    <section>
+      <span class="slide-tag">Slide 09</span>
+      <h2 id="sect-2-4">2.4 — Modules NestJS et responsabilités</h2>
+      <p>
+        Les modules sont indépendants et communiquent par
+        <code>@nestjs/event-emitter</code>. Chacun publie ses providers via son
+        module NestJS ; la documentation détaillée vit dans
+        <code>gong-core/docs/</code>.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 22%">Module</th>
+            <th>Responsabilité</th>
+            <th style="width: 18%">Persistance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>GatewayModule</code></td>
+            <td>
+              Wrapper de l'Admin API Kong (services, routes, plugins, consumers)
+              via SDK généré <code>kong-client</code>.
+            </td>
+            <td>Kong (externe)</td>
+          </tr>
+          <tr>
+            <td><code>MetricsModule</code></td>
+            <td>
+              Polling Prometheus toutes les 15 s, cache par scope, détection
+              naïve de santé (≥ 10 fenêtres consécutives avec 5xx / 429 →
+              service dégradé). Émet <code>metrics.updated</code>,
+              <code>metrics.poll.failed</code>, <code>health.changed</code>.
+            </td>
+            <td>Mémoire</td>
+          </tr>
+          <tr>
+            <td><code>MonitoringModule</code></td>
+            <td>
+              CRUD de règles (<code>ERROR_RATE</code>, <code>LATENCY_P95</code>,
+              <code>UPSTREAM_HEALTH</code>), checks planifiés et manuels,
+              cooldown par règle. Émet
+              <code>monitoring.threshold.exceeded</code>.
+            </td>
+            <td>Postgres</td>
+          </tr>
+          <tr>
+            <td><code>IncidentsModule</code></td>
+            <td>
+              Création d'incident sur
+              <code>monitoring.threshold.exceeded</code>, salle WebSocket
+              <code>/incident-room</code>, journal d'actions, snapshot SSE. Émet
+              <code>incident.created</code>.
+            </td>
+            <td>Postgres</td>
+          </tr>
+          <tr>
+            <td><code>WebhooksModule</code></td>
+            <td>
+              Façade sortante Generic / Discord / Slack via formatters dédiés,
+              signature HMAC optionnelle, retries avec backoff, deliveries
+              journalisées. Listener <code>incident-created</code>.
+            </td>
+            <td>Mémoire</td>
+          </tr>
+          <tr>
+            <td><code>MessengerModule</code></td>
+            <td>
+              Callback Meta entrant : vérification du token, stockage des
+              événements et PSIDs.
+            </td>
+            <td>Mémoire</td>
+          </tr>
+          <tr>
+            <td><code>SentinelGraphqlModule</code></td>
+            <td>
+              Schéma Apollo unique exposant gateway, monitoring, incidents,
+              métriques, webhooks et messenger.
+            </td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><code>AuthModule</code></td>
+            <td>
+              JWT (Passport), guard, <code>CeoSecretService</code> pour les
+              actions de désactivation.
+            </td>
+            <td>Postgres</td>
+          </tr>
+          <tr>
+            <td><code>UsersModule</code></td>
+            <td>
+              Référentiel des admins (email, mot de passe haché, rôle, statut).
+            </td>
+            <td>Postgres</td>
+          </tr>
+          <tr>
+            <td><code>CommonModule</code></td>
+            <td>
+              Services transverses : <code>GenericService</code>, notifications,
+              sanitisation.
+            </td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="box info">
+        <p class="small">
+          <strong>Chaîne nominale.</strong>
+          <code
+            >Prometheus → MetricsModule → MonitoringModule → IncidentsModule →
+            WebhooksModule</code
+          >. Aucun module n'appelle directement le service d'un autre : ils
+          s'écoutent via <code>EventEmitter2</code>.
+        </p>
+      </div>
+    </section>
 
-<section>
-<span class="slide-tag">Slide 10</span>
-<h2 id="sect-2-5">2.5 — Architecture événementielle</h2>
-<div class="diagram">
-<pre class="mermaid">
+    <section>
+      <span class="slide-tag">Slide 10</span>
+      <h2 id="sect-2-5">2.5 — Architecture événementielle</h2>
+      <div class="diagram">
+        <pre class="mermaid">
 flowchart LR
   PROM["Prometheus"] -->|PromQL| MET["MetricsService<br/>poll 15s"]
   MET -->|metrics.updated| BUS{{"EventEmitter2"}}
@@ -563,29 +1426,63 @@ flowchart LR
   WH --> DISC["Discord formatter"]
   WH --> GEN["Generic + HMAC"]
 </pre>
-<div class="cap">Figure 2 — Flux d'événements internes via <code>@nestjs/event-emitter</code>.</div>
-</div>
-<h3>Catalogue des événements de domaine</h3>
-<table>
-<thead><tr><th style="width:28%">Événement</th><th>Émis par</th><th>Consommé par</th></tr></thead>
-<tbody>
-<tr><td><code>metrics.updated</code></td><td><code>MetricsService.pollAll</code></td><td>(consommateurs internes/futurs)</td></tr>
-<tr><td><code>metrics.poll.failed</code></td><td><code>MetricsService.pollAll</code></td><td>Logs ; futurs incidents d'infra</td></tr>
-<tr><td><code>health.changed</code></td><td><code>MetricsService.updateServiceHealth</code></td><td>Dashboard ; alertes</td></tr>
-<tr><td><code>monitoring.threshold.exceeded</code></td><td><code>MonitoringService.runChecks</code></td><td><code>IncidentsService</code></td></tr>
-<tr><td><code>incident.created</code></td><td><code>IncidentsService</code></td><td><code>IncidentCreatedListener</code> (webhooks) · <code>IncidentsController.sse</code> · WebSocket gateway</td></tr>
-</tbody>
-</table>
-</section>
+        <div class="cap">
+          Figure 2 — Flux d'événements internes via
+          <code>@nestjs/event-emitter</code>.
+        </div>
+      </div>
+      <h3>Catalogue des événements de domaine</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 28%">Événement</th>
+            <th>Émis par</th>
+            <th>Consommé par</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>metrics.updated</code></td>
+            <td><code>MetricsService.pollAll</code></td>
+            <td>(consommateurs internes/futurs)</td>
+          </tr>
+          <tr>
+            <td><code>metrics.poll.failed</code></td>
+            <td><code>MetricsService.pollAll</code></td>
+            <td>Logs ; futurs incidents d'infra</td>
+          </tr>
+          <tr>
+            <td><code>health.changed</code></td>
+            <td><code>MetricsService.updateServiceHealth</code></td>
+            <td>Dashboard ; alertes</td>
+          </tr>
+          <tr>
+            <td><code>monitoring.threshold.exceeded</code></td>
+            <td><code>MonitoringService.runChecks</code></td>
+            <td><code>IncidentsService</code></td>
+          </tr>
+          <tr>
+            <td><code>incident.created</code></td>
+            <td><code>IncidentsService</code></td>
+            <td>
+              <code>IncidentCreatedListener</code> (webhooks) ·
+              <code>IncidentsController.sse</code> · WebSocket gateway
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
 
-<section class="page-break">
-<span class="slide-tag">Slide 11</span>
-<h2 id="sect-2-6">2.6 — Modèle de domaine</h2>
-<p>Le modèle est volontairement minimal : les entités réellement persistées sont
-celles présentes dans <code>src/**/entities/</code>. Les webhooks et événements
-Messenger vivent en mémoire (V1).</p>
-<div class="diagram">
-<pre class="mermaid">
+    <section class="page-break">
+      <span class="slide-tag">Slide 11</span>
+      <h2 id="sect-2-6">2.6 — Modèle de domaine</h2>
+      <p>
+        Le modèle est volontairement minimal : les entités réellement persistées
+        sont celles présentes dans <code>src/**/entities/</code>. Les webhooks
+        et événements Messenger vivent en mémoire (V1).
+      </p>
+      <div class="diagram">
+        <pre class="mermaid">
 classDiagram
   direction LR
   class User {
@@ -666,24 +1563,33 @@ classDiagram
   MonitoringRule ..> Incident : triggers
   Webhook "1" --> "*" WebhookDelivery
   Incident ..> WebhookDelivery : INCIDENT_CREATED
-</pre>
-<div class="cap">Figure 3 — Modèle de domaine réel (TypeORM + types en mémoire).</div>
-</div>
-<p class="small"><strong>Énumérations.</strong> <code>UserRole</code> · <code>UserStatus</code>
-· <code>MonitoringRuleType</code> {ERROR_RATE, LATENCY_P95, UPSTREAM_HEALTH} ·
-<code>IncidentSeverity</code> · <code>IncidentStatus</code> {OPEN, ACKNOWLEDGED, RESOLVED} ·
-<code>IncidentLogAction</code> · <code>WebhookProvider</code> {GENERIC, DISCORD, SLACK} ·
-<code>WebhookEventType</code> · <code>WebhookDeliveryStatus</code> {PENDING, SUCCESS, FAILED}.</p>
-</section>
+</pre
+        >
+        <div class="cap">
+          Figure 3 — Modèle de domaine réel (TypeORM + types en mémoire).
+        </div>
+      </div>
+      <p class="small">
+        <strong>Énumérations.</strong> <code>UserRole</code> ·
+        <code>UserStatus</code> · <code>MonitoringRuleType</code> {ERROR_RATE,
+        LATENCY_P95, UPSTREAM_HEALTH} · <code>IncidentSeverity</code> ·
+        <code>IncidentStatus</code> {OPEN, ACKNOWLEDGED, RESOLVED} ·
+        <code>IncidentLogAction</code> · <code>WebhookProvider</code> {GENERIC,
+        DISCORD, SLACK} · <code>WebhookEventType</code> ·
+        <code>WebhookDeliveryStatus</code> {PENDING, SUCCESS, FAILED}.
+      </p>
+    </section>
 
-<section class="page-break">
-<span class="slide-tag">Slide 12</span>
-<h2 id="sect-2-7">2.7 — Séquence : détection d'anomalie</h2>
-<p>Scénario nominal : Kong renvoie des 5xx, Prometheus le voit, la règle
-<code>ERROR_RATE</code> se déclenche, un incident est créé, la salle s'ouvre et Slack
-est notifié.</p>
-<div class="diagram">
-<pre class="mermaid">
+    <section class="page-break">
+      <span class="slide-tag">Slide 12</span>
+      <h2 id="sect-2-7">2.7 — Séquence : détection d'anomalie</h2>
+      <p>
+        Scénario nominal : Kong renvoie des 5xx, Prometheus le voit, la règle
+        <code>ERROR_RATE</code> se déclenche, un incident est créé, la salle
+        s'ouvre et Slack est notifié.
+      </p>
+      <div class="diagram">
+        <pre class="mermaid">
 sequenceDiagram
   participant Kong
   participant Prom as Prometheus
@@ -716,19 +1622,25 @@ sequenceDiagram
   WSG->>INC: acknowledge(adminId)
   INC-->>WSG: snapshot
   WSG-->>Admin: incidentUpdated
-</pre>
-<div class="cap">Figure 4 — Détection d'une anomalie et fan-out vers WebSocket + webhooks.</div>
-</div>
-</section>
+</pre
+        >
+        <div class="cap">
+          Figure 4 — Détection d'une anomalie et fan-out vers WebSocket +
+          webhooks.
+        </div>
+      </div>
+    </section>
 
-<section>
-<span class="slide-tag">Slide 13</span>
-<h2 id="sect-2-8">2.8 — Cycle de vie d'un incident</h2>
-<p>L'incident est modélisé comme une machine à états stricte. Les transitions sont
-contrôlées par <code>IncidentsService</code> ; toute action est journalisée dans
-<code>incident_logs</code>.</p>
-<div class="diagram">
-<pre class="mermaid">
+    <section>
+      <span class="slide-tag">Slide 13</span>
+      <h2 id="sect-2-8">2.8 — Cycle de vie d'un incident</h2>
+      <p>
+        L'incident est modélisé comme une machine à états stricte. Les
+        transitions sont contrôlées par <code>IncidentsService</code> ; toute
+        action est journalisée dans <code>incident_logs</code>.
+      </p>
+      <div class="diagram">
+        <pre class="mermaid">
 stateDiagram-v2
   [*] --> Open : monitoring.threshold.exceeded
   Open --> Acknowledged : ackIncident(adminId)
@@ -744,22 +1656,32 @@ stateDiagram-v2
     resolvedAt fixé
     Journal figé
   end note
-</pre>
-<div class="cap">Figure 5 — Transitions appliquées par <code>IncidentsService</code>.</div>
-</div>
-<div class="box warn"><p class="small"><strong>À noter.</strong> L'auto-résolution
-« 5 min sans erreur » est <em>hors périmètre</em> de la V1 : un incident reste ouvert
-tant qu'un admin ne le résout pas explicitement.</p></div>
-</section>
+</pre
+        >
+        <div class="cap">
+          Figure 5 — Transitions appliquées par <code>IncidentsService</code>.
+        </div>
+      </div>
+      <div class="box warn">
+        <p class="small">
+          <strong>À noter.</strong> L'auto-résolution « 5 min sans erreur » est
+          <em>hors périmètre</em> de la V1 : un incident reste ouvert tant qu'un
+          admin ne le résout pas explicitement.
+        </p>
+      </div>
+    </section>
 
-<section>
-<span class="slide-tag">Slide 14</span>
-<h2 id="sect-2-9">2.9 — Modèle physique de données</h2>
-<p>Quatre tables sont gérées par TypeORM dans la base <code>sentinel_gateway</code>
-(<code>synchronize: true</code> en dev). Les autres états (webhooks, deliveries,
-messenger) vivent en mémoire dans la V1.</p>
-<div class="diagram">
-<pre class="mermaid">
+    <section>
+      <span class="slide-tag">Slide 14</span>
+      <h2 id="sect-2-9">2.9 — Modèle physique de données</h2>
+      <p>
+        Quatre tables sont gérées par TypeORM dans la base
+        <code>sentinel_gateway</code> (<code>synchronize: true</code> en dev).
+        Les autres états (webhooks, deliveries, messenger) vivent en mémoire
+        dans la V1.
+      </p>
+      <div class="diagram">
+        <pre class="mermaid">
 erDiagram
   users ||--o{ incident_logs : "authors via admin_id"
   incidents ||--o{ incident_logs : "logged in"
@@ -811,207 +1733,546 @@ erDiagram
     jsonb details
     timestamp created_at
   }
-</pre>
-<div class="cap">Figure 6 — Tables Postgres réellement gérées par TypeORM.</div>
-</div>
-<h3>Stockages annexes</h3>
-<table>
-<thead><tr><th style="width:24%">Donnée</th><th>Où</th><th>Persistance</th></tr></thead>
-<tbody>
-<tr><td>Métriques Prometheus</td><td>Cache <code>Map&lt;scopeKey, CachedMetrics&gt;</code></td><td>Mémoire (perdu au restart)</td></tr>
-<tr><td>État de santé service</td><td>Cache <code>Map&lt;serviceId, boolean&gt;</code></td><td>Mémoire</td></tr>
-<tr><td>Webhooks &amp; deliveries</td><td><code>WebhooksRepository</code> in-memory</td><td>Mémoire</td></tr>
-<tr><td>Événements Messenger inbound</td><td><code>MessengerEventsRepository</code> in-memory</td><td>Mémoire</td></tr>
-<tr><td>Présence WebSocket</td><td><code>presenceByIncident: Map&lt;incidentId, Map&lt;socketId, PresentAdmin&gt;&gt;</code></td><td>Mémoire</td></tr>
-</tbody>
-</table>
-</section>
+</pre
+        >
+        <div class="cap">
+          Figure 6 — Tables Postgres réellement gérées par TypeORM.
+        </div>
+      </div>
+      <h3>Stockages annexes</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 24%">Donnée</th>
+            <th>Où</th>
+            <th>Persistance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Métriques Prometheus</td>
+            <td>Cache <code>Map&lt;scopeKey, CachedMetrics&gt;</code></td>
+            <td>Mémoire (perdu au restart)</td>
+          </tr>
+          <tr>
+            <td>État de santé service</td>
+            <td>Cache <code>Map&lt;serviceId, boolean&gt;</code></td>
+            <td>Mémoire</td>
+          </tr>
+          <tr>
+            <td>Webhooks &amp; deliveries</td>
+            <td><code>WebhooksRepository</code> in-memory</td>
+            <td>Mémoire</td>
+          </tr>
+          <tr>
+            <td>Événements Messenger inbound</td>
+            <td><code>MessengerEventsRepository</code> in-memory</td>
+            <td>Mémoire</td>
+          </tr>
+          <tr>
+            <td>Présence WebSocket</td>
+            <td>
+              <code
+                >presenceByIncident: Map&lt;incidentId, Map&lt;socketId,
+                PresentAdmin&gt;&gt;</code
+              >
+            </td>
+            <td>Mémoire</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
 
-<section>
-<span class="slide-tag">Slide 15</span>
-<h2 id="sect-2-10">2.10 — Protocoles utilisés</h2>
-<table>
-<thead><tr><th style="width:14%">Protocole</th><th style="width:24%">Sens</th><th>Usage réel</th></tr></thead>
-<tbody>
-<tr><td><span class="tag b">REST</span></td><td>Admin → Sentinel</td><td>CRUD Kong, monitoring, incidents, webhooks ; webhook entrant Messenger ; emit interne.</td></tr>
-<tr><td><span class="tag v">GraphQL</span></td><td>Admin → Sentinel</td><td>Apollo, schéma unique <code>SentinelGraphqlResolver</code> ; <code>dashboardOverview</code> agrégé en une requête.</td></tr>
-<tr><td><span class="tag a">SSE</span></td><td>Sentinel → Admin</td><td><em>Uniquement</em> <code>GET /incidents/sse</code> diffusant <code>incident.created</code>. Pas de stream de métriques.</td></tr>
-<tr><td><span class="tag r">WebSocket</span></td><td>Admin ↔ Sentinel</td><td>Namespace <code>/incident-room</code> (Socket.io) : présence, chat, ack, resolve.</td></tr>
-<tr><td><span class="tag g">Webhook</span></td><td>Sentinel → Externe</td><td>POST signé HMAC vers Slack, Discord ou endpoint <code>GENERIC</code> ; retries avec backoff.</td></tr>
-<tr><td><span class="tag n">PromQL</span></td><td>Sentinel → Prometheus</td><td><code>PrometheusService</code> assemble les PromQL des compteurs Kong et latences.</td></tr>
-</tbody>
-</table>
-</section>
+    <section>
+      <span class="slide-tag">Slide 15</span>
+      <h2 id="sect-2-10">2.10 — Protocoles utilisés</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 14%">Protocole</th>
+            <th style="width: 24%">Sens</th>
+            <th>Usage réel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag b">REST</span></td>
+            <td>Admin → Gong</td>
+            <td>
+              CRUD Kong, monitoring, incidents, webhooks ; webhook entrant
+              Messenger ; emit interne.
+            </td>
+          </tr>
+          <tr>
+            <td><span class="tag v">GraphQL</span></td>
+            <td>Admin → Gong</td>
+            <td>
+              Apollo, schéma unique <code>SentinelGraphqlResolver</code> ;
+              <code>dashboardOverview</code> agrégé en une requête.
+            </td>
+          </tr>
+          <tr>
+            <td><span class="tag a">SSE</span></td>
+            <td>Gong → Admin</td>
+            <td>
+              <em>Uniquement</em> <code>GET /incidents/sse</code> diffusant
+              <code>incident.created</code>. Pas de stream de métriques.
+            </td>
+          </tr>
+          <tr>
+            <td><span class="tag r">WebSocket</span></td>
+            <td>Admin ↔ Gong</td>
+            <td>
+              Namespace <code>/incident-room</code> (Socket.io) : présence,
+              chat, ack, resolve.
+            </td>
+          </tr>
+          <tr>
+            <td><span class="tag g">Webhook</span></td>
+            <td>Gong → Externe</td>
+            <td>
+              POST signé HMAC vers Slack, Discord ou endpoint
+              <code>GENERIC</code> ; retries avec backoff.
+            </td>
+          </tr>
+          <tr>
+            <td><span class="tag n">PromQL</span></td>
+            <td>Gong → Prometheus</td>
+            <td>
+              <code>PrometheusService</code> assemble les PromQL des compteurs
+              Kong et latences.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
 
-<section>
-<span class="slide-tag">Slide 16</span>
-<h2 id="sect-2-11">2.11 — Sécurité et authentification</h2>
-<div class="grid2">
-  <div>
-    <h4>Authentification</h4>
-    <ul class="small">
-      <li><strong>JWT</strong> via Passport (<code>JwtStrategy</code>, <code>JwtAuthGuard</code>).</li>
-      <li><strong>GraphQL</strong> protégé par <code>GqlJwtAuthGuard</code>.</li>
-      <li><strong>WebhookAdminGuard</strong> pour les routes d'administration des webhooks (clé <code>X-Sentinel-Admin-Key</code>).</li>
-      <li><strong>CeoSecretService</strong> requis pour désactiver un autre admin.</li>
-    </ul>
-  </div>
-  <div>
-    <h4>Intégrité &amp; sécurité opérationnelle</h4>
-    <ul class="small">
-      <li><strong>Signature HMAC</strong> SHA-256 des payloads webhook sortants si <code>secret</code> configuré.</li>
-      <li><strong>Sanitisation</strong> centralisée dans <code>common/sanitize.ts</code>.</li>
-      <li><strong>Validation</strong> stricte des DTO via <code>class-validator</code>.</li>
-      <li>Les <strong>secrets webhook</strong> ne sont jamais renvoyés dans les réponses publiques (<code>hasSecret</code> uniquement).</li>
-      <li>Le <strong>token Messenger</strong> ne quitte jamais l'environnement.</li>
-    </ul>
-  </div>
-</div>
-<div class="box danger"><p class="small"><strong>Points d'attention V1.</strong>
-TypeORM <code>synchronize: true</code> est activé : OK en dev, à désactiver en
-production. Les webhooks sont en mémoire : redémarrer le backend efface la
-configuration. Pas encore d'HTTPS au niveau Sentinel — Kong est censé gérer la
-terminaison TLS.</p></div>
-</section>
+    <section>
+      <span class="slide-tag">Slide 16</span>
+      <h2 id="sect-2-11">2.11 — Sécurité et authentification</h2>
+      <div class="grid2">
+        <div>
+          <h4>Authentification</h4>
+          <ul class="small">
+            <li>
+              <strong>JWT</strong> via Passport (<code>JwtStrategy</code>,
+              <code>JwtAuthGuard</code>).
+            </li>
+            <li>
+              <strong>GraphQL</strong> protégé par <code>GqlJwtAuthGuard</code>.
+            </li>
+            <li>
+              <strong>WebhookAdminGuard</strong> pour les routes
+              d'administration des webhooks (clé
+              <code>X-Gong-Admin-Key</code>).
+            </li>
+            <li>
+              <strong>CeoSecretService</strong> requis pour désactiver un autre
+              admin.
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h4>Intégrité &amp; sécurité opérationnelle</h4>
+          <ul class="small">
+            <li>
+              <strong>Signature HMAC</strong> SHA-256 des payloads webhook
+              sortants si <code>secret</code> configuré.
+            </li>
+            <li>
+              <strong>Sanitisation</strong> centralisée dans
+              <code>common/sanitize.ts</code>.
+            </li>
+            <li>
+              <strong>Validation</strong> stricte des DTO via
+              <code>class-validator</code>.
+            </li>
+            <li>
+              Les <strong>secrets webhook</strong> ne sont jamais renvoyés dans
+              les réponses publiques (<code>hasSecret</code> uniquement).
+            </li>
+            <li>
+              Le <strong>token Messenger</strong> ne quitte jamais
+              l'environnement.
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="box danger">
+        <p class="small">
+          <strong>Points d'attention V1.</strong> TypeORM
+          <code>synchronize: true</code> est activé : OK en dev, à désactiver en
+          production. Les webhooks sont en mémoire : redémarrer le backend
+          efface la configuration. Pas encore d'HTTPS au niveau Gong — Kong
+          est censé gérer la terminaison TLS.
+        </p>
+      </div>
+    </section>
 
-<!-- ================= PARTIE III ================= -->
-<div class="part-title">
-  <div class="k">Partie III</div>
-  <h1>Équipe et démonstration</h1>
-  <div class="sub">Comment les 6 développeurs se répartissent les modules, ce qui est
-  testé et ce qui reste à finir.</div>
-</div>
+    <!-- ================= PARTIE III ================= -->
+    <div class="part-title">
+      <div class="k">Partie III</div>
+      <h1>Équipe et démonstration</h1>
+      <div class="sub">
+        Comment les 6 développeurs se répartissent les modules, ce qui est testé
+        et ce qui reste à finir.
+      </div>
+    </div>
 
-<section>
-<span class="slide-tag">Slide 17</span>
-<h2 id="sect-3-1">3.1 — Répartition de l'équipe</h2>
-<p>Chaque développeur possède un domaine fonctionnel. Le découpage par
-<code>EventEmitter2</code> permet d'avancer en parallèle dès que les types d'événements
-sont gelés.</p>
-<table>
-<thead><tr><th style="width:6%">Dév.</th><th style="width:22%">Lot</th><th>Périmètre et modules</th></tr></thead>
-<tbody>
-<tr><td><strong>P1</strong></td><td>Kong &amp; Gateway</td><td>Configuration Docker Compose de Kong, <code>kong.yaml</code> déclaratif, <code>GatewayModule</code> (services / routes / plugins / consumers) via <code>kong-client</code> généré.</td></tr>
-<tr><td><strong>P2</strong></td><td>Auth &amp; Users</td><td><code>AuthModule</code> (JWT, secret CEO), <code>UsersModule</code> (admins), DTO et entités, hash de mot de passe.</td></tr>
-<tr><td><strong>P3</strong></td><td>Metrics &amp; Monitoring</td><td><code>MetricsModule</code> (polling Prometheus + cache + santé), <code>MonitoringModule</code> (règles + checks + cooldown + événement <code>monitoring.threshold.exceeded</code>).</td></tr>
-<tr><td><strong>P4</strong></td><td>Incidents &amp; Realtime</td><td><code>IncidentsModule</code> (entités, service, controller, SSE), <code>IncidentRoomGateway</code> (Socket.io présence + chat + actions).</td></tr>
-<tr><td><strong>P5</strong></td><td>Webhooks, Messenger &amp; GraphQL</td><td><code>WebhooksModule</code> (Slack / Discord / Generic + HMAC + retries), <code>MessengerModule</code> (callback Meta inbound), <code>SentinelGraphqlModule</code> (résolveur unique).</td></tr>
-<tr><td><strong>P6</strong></td><td>Frontend incident-room</td><td>Mini-SPA React + Vite consommant <code>/incident-room</code> Socket.io et <code>/incidents/sse</code> ; build injecté dans <code>sentinel-core/public/</code>.</td></tr>
-</tbody>
-</table>
-</section>
+    <section>
+      <span class="slide-tag">Slide 17</span>
+      <h2 id="sect-3-1">3.1 — Répartition de l'équipe</h2>
+      <p>
+        Chaque développeur possède un domaine fonctionnel. Le découpage par
+        <code>EventEmitter2</code> permet d'avancer en parallèle dès que les
+        types d'événements sont gelés.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 6%">Dév.</th>
+            <th style="width: 22%">Lot</th>
+            <th>Périmètre et modules</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>P1</strong></td>
+            <td>Kong &amp; Gateway</td>
+            <td>
+              Configuration Docker Compose de Kong,
+              <code>kong.yaml</code> déclaratif,
+              <code>GatewayModule</code> (services / routes / plugins /
+              consumers) via <code>kong-client</code> généré.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>P2</strong></td>
+            <td>Auth &amp; Users</td>
+            <td>
+              <code>AuthModule</code> (JWT, secret CEO),
+              <code>UsersModule</code> (admins), DTO et entités, hash de mot de
+              passe.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>P3</strong></td>
+            <td>Metrics &amp; Monitoring</td>
+            <td>
+              <code>MetricsModule</code> (polling Prometheus + cache + santé),
+              <code>MonitoringModule</code> (règles + checks + cooldown +
+              événement <code>monitoring.threshold.exceeded</code>).
+            </td>
+          </tr>
+          <tr>
+            <td><strong>P4</strong></td>
+            <td>Incidents &amp; Realtime</td>
+            <td>
+              <code>IncidentsModule</code> (entités, service, controller, SSE),
+              <code>IncidentRoomGateway</code> (Socket.io présence + chat +
+              actions).
+            </td>
+          </tr>
+          <tr>
+            <td><strong>P5</strong></td>
+            <td>Webhooks, Messenger &amp; GraphQL</td>
+            <td>
+              <code>WebhooksModule</code> (Slack / Discord / Generic + HMAC +
+              retries), <code>MessengerModule</code> (callback Meta inbound),
+              <code>SentinelGraphqlModule</code> (résolveur unique).
+            </td>
+          </tr>
+          <tr>
+            <td><strong>P6</strong></td>
+            <td>Frontend incident-room</td>
+            <td>
+              Mini-SPA React + Vite consommant
+              <code>/incident-room</code> Socket.io et
+              <code>/incidents/sse</code> ; build injecté dans
+              <code>gong-core/public/</code>.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
 
-<section>
-<span class="slide-tag">Slide 18</span>
-<h2 id="sect-3-2">3.2 — Stratégie de tests</h2>
-<table>
-<thead><tr><th style="width:18%">Niveau</th><th style="width:22%">Outils</th><th>Périmètre actuel</th></tr></thead>
-<tbody>
-<tr><td><strong>Unitaire</strong></td><td>Jest</td><td><code>metrics.service.spec.ts</code>, <code>prometheus.service.spec.ts</code>, <code>monitoring.service.spec.ts</code>.</td></tr>
-<tr><td><strong>Intégration / e2e</strong></td><td>Supertest (config <code>test/jest-e2e.json</code>)</td><td>Couvre les contrôleurs webhooks et l'endpoint <code>/webhooks/emit</code> ; à étendre aux autres domaines.</td></tr>
-<tr><td><strong>Type-check</strong></td><td><code>npx tsc --noEmit</code></td><td>Garde-fou imposé avant chaque PR.</td></tr>
-<tr><td><strong>Lint</strong></td><td>ESLint + Prettier</td><td>Configuration partagée (<code>eslint.config.mjs</code>, <code>.prettierrc</code>).</td></tr>
-<tr><td><strong>Démo de bout en bout</strong></td><td><code>docker compose up</code> + collection HTTP</td><td><code>test_sentinel_app.http.example</code> sert de script de scénario reproductible.</td></tr>
-</tbody>
-</table>
-<div class="box info"><p class="small"><strong>Convention.</strong> Chaque développeur
-teste son lot ; les tests bout-en-bout sont mutualisés en fin de cycle. La
-documentation par module (<code>sentinel-core/docs/</code>) liste les commandes de
-vérification à exécuter avant un merge.</p></div>
-</section>
+    <section>
+      <span class="slide-tag">Slide 18</span>
+      <h2 id="sect-3-2">3.2 — Stratégie de tests</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 18%">Niveau</th>
+            <th style="width: 22%">Outils</th>
+            <th>Périmètre actuel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Unitaire</strong></td>
+            <td>Jest</td>
+            <td>
+              <code>metrics.service.spec.ts</code>,
+              <code>prometheus.service.spec.ts</code>,
+              <code>monitoring.service.spec.ts</code>.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Intégration / e2e</strong></td>
+            <td>Supertest (config <code>test/jest-e2e.json</code>)</td>
+            <td>
+              Couvre les contrôleurs webhooks et l'endpoint
+              <code>/webhooks/emit</code> ; à étendre aux autres domaines.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Type-check</strong></td>
+            <td><code>npx tsc --noEmit</code></td>
+            <td>Garde-fou imposé avant chaque PR.</td>
+          </tr>
+          <tr>
+            <td><strong>Lint</strong></td>
+            <td>ESLint + Prettier</td>
+            <td>
+              Configuration partagée (<code>eslint.config.mjs</code>,
+              <code>.prettierrc</code>).
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Démo de bout en bout</strong></td>
+            <td><code>docker compose up</code> + collection HTTP</td>
+            <td>
+              <code>test_sentinel_app.http.example</code> sert de script de
+              scénario reproductible.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="box info">
+        <p class="small">
+          <strong>Convention.</strong> Chaque développeur teste son lot ; les
+          tests bout-en-bout sont mutualisés en fin de cycle. La documentation
+          par module (<code>gong-core/docs/</code>) liste les commandes de
+          vérification à exécuter avant un merge.
+        </p>
+      </div>
+    </section>
 
-<section>
-<span class="slide-tag">Slide 19</span>
-<h2 id="sect-3-3">3.3 — Limites actuelles</h2>
-<div class="grid2">
-  <div class="box warn">
-    <h4>En mémoire (perdu au redémarrage)</h4>
-    <ul class="small">
-      <li>Webhooks et leurs deliveries.</li>
-      <li>Événements et recipients Messenger.</li>
-      <li>Cache de métriques et état de santé service.</li>
-      <li>Présence dans les salles d'incident.</li>
-    </ul>
-  </div>
-  <div class="box danger">
-    <h4>Non implémenté en V1</h4>
-    <ul class="small">
-      <li>Auto-résolution d'incident.</li>
-      <li>Provider Messenger sortant (uniquement inbound).</li>
-      <li>Migrations TypeORM (mode <code>synchronize: true</code>).</li>
-      <li>Redis Pub/Sub multi-instances.</li>
-      <li>RBAC fin (un seul rôle Admin + secret CEO).</li>
-      <li>Stream SSE des métriques.</li>
-    </ul>
-  </div>
-</div>
-<div class="box ok">
-<h4>Pistes d'évolution déjà câblées</h4>
-<ul class="small">
-  <li>Le bus d'événements <code>EventEmitter2</code> peut être étendu à Redis pour multi-instances sans réécrire les listeners.</li>
-  <li>L'enum <code>WebhookProvider</code> peut accueillir <code>MESSENGER</code> sortant ; la spec de payload est déjà documentée (<code>messenger_integration.md</code>).</li>
-  <li>L'état <code>DeliveryStatus.PENDING</code> est réservé pour une future implémentation asynchrone par queue.</li>
-</ul>
-</div>
-</section>
+    <section>
+      <span class="slide-tag">Slide 19</span>
+      <h2 id="sect-3-3">3.3 — Limites actuelles</h2>
+      <div class="grid2">
+        <div class="box warn">
+          <h4>En mémoire (perdu au redémarrage)</h4>
+          <ul class="small">
+            <li>Webhooks et leurs deliveries.</li>
+            <li>Événements et recipients Messenger.</li>
+            <li>Cache de métriques et état de santé service.</li>
+            <li>Présence dans les salles d'incident.</li>
+          </ul>
+        </div>
+        <div class="box danger">
+          <h4>Non implémenté en V1</h4>
+          <ul class="small">
+            <li>Auto-résolution d'incident.</li>
+            <li>Provider Messenger sortant (uniquement inbound).</li>
+            <li>Migrations TypeORM (mode <code>synchronize: true</code>).</li>
+            <li>Redis Pub/Sub multi-instances.</li>
+            <li>RBAC fin (un seul rôle Admin + secret CEO).</li>
+            <li>Stream SSE des métriques.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="box ok">
+        <h4>Pistes d'évolution déjà câblées</h4>
+        <ul class="small">
+          <li>
+            Le bus d'événements <code>EventEmitter2</code> peut être étendu à
+            Redis pour multi-instances sans réécrire les listeners.
+          </li>
+          <li>
+            L'enum <code>WebhookProvider</code> peut accueillir
+            <code>MESSENGER</code> sortant ; la spec de payload est déjà
+            documentée (<code>messenger_integration.md</code>).
+          </li>
+          <li>
+            L'état <code>DeliveryStatus.PENDING</code> est réservé pour une
+            future implémentation asynchrone par queue.
+          </li>
+        </ul>
+      </div>
+    </section>
 
-<section>
-<span class="slide-tag">Slide 20</span>
-<h2 id="sect-3-4">3.4 — Scénario de démonstration</h2>
-<p>La démo valide les critères AC-01 à AC-08 en une dizaine de minutes, depuis un
-environnement Docker Compose fraîchement démarré.</p>
-<table>
-<thead><tr><th style="width:6%">#</th><th style="width:26%">Action</th><th>Démonstration</th><th style="width:14%">Protocole</th></tr></thead>
-<tbody>
-<tr><td><strong>1</strong></td><td>Démarrer l'environnement</td><td><code>docker compose up</code> ; Kong, ses migrations, Prometheus, sentinel-core et les bad-services montent. Vérifier <code>GET /</code> Kong et Sentinel.</td><td><span class="tag b">REST</span></td></tr>
-<tr><td><strong>2</strong></td><td>Auth</td><td><code>POST /auth/register</code> puis <code>POST /auth/login</code> → JWT injecté dans les appels suivants.</td><td><span class="tag b">REST</span></td></tr>
-<tr><td><strong>3</strong></td><td>Configurer Kong</td><td>Créer un service vers <code>limit-exceeded</code> + une route via <code>POST /gateway/services</code> et <code>… /routes</code>. Vérifier sur Admin API Kong.</td><td><span class="tag b">REST</span></td></tr>
-<tr><td><strong>4</strong></td><td>Générer du trafic</td><td>Appeler la route Kong proxifiée plusieurs fois ; Prometheus voit monter <code>kong_http_status</code>.</td><td><span class="tag n">PromQL</span></td></tr>
-<tr><td><strong>5</strong></td><td>Créer une règle d'anomalie</td><td><code>POST /monitoring/rules</code> avec type <code>ERROR_RATE</code> seuil 0.5 et fenêtre <code>1m</code>. Lancer <code>POST /monitoring/check</code>.</td><td><span class="tag v">GraphQL</span></td></tr>
-<tr><td><strong>6</strong></td><td>Incident automatique</td><td>La règle se déclenche, un incident est créé ; un client connecté à <code>SSE /incidents/sse</code> le voit en direct.</td><td><span class="tag a">SSE</span></td></tr>
-<tr><td><strong>7</strong></td><td>Collaboration</td><td>Deux clients rejoignent <code>/incident-room</code> namespace, échangent un message, voient la présence, puis acquittent et résolvent l'incident.</td><td><span class="tag r">WebSocket</span></td></tr>
-<tr><td><strong>8</strong></td><td>Notification externe</td><td>Un webhook Slack configuré (<code>POST /webhooks</code>) reçoit le payload <code>INCIDENT_CREATED</code> ; la delivery est listée par <code>GET /webhook-deliveries</code>.</td><td><span class="tag g">Webhook</span></td></tr>
-<tr><td><strong>9</strong></td><td>Inbound Messenger (bonus)</td><td>Meta vérifie le callback (<code>hub.challenge</code>) ; un message Facebook arrive dans <code>GET /messenger/events</code>.</td><td><span class="tag b">REST</span></td></tr>
-</tbody>
-</table>
+    <section>
+      <span class="slide-tag">Slide 20</span>
+      <h2 id="sect-3-4">3.4 — Scénario de démonstration</h2>
+      <p>
+        La démo valide les critères AC-01 à AC-08 en une dizaine de minutes,
+        depuis un environnement Docker Compose fraîchement démarré.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 6%">#</th>
+            <th style="width: 26%">Action</th>
+            <th>Démonstration</th>
+            <th style="width: 14%">Protocole</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1</strong></td>
+            <td>Démarrer l'environnement</td>
+            <td>
+              <code>docker compose up</code> ; Kong, ses migrations, Prometheus,
+              gong-core et les bad-services montent. Vérifier
+              <code>GET /</code> Kong et Gong.
+            </td>
+            <td><span class="tag b">REST</span></td>
+          </tr>
+          <tr>
+            <td><strong>2</strong></td>
+            <td>Auth</td>
+            <td>
+              <code>POST /auth/register</code> puis
+              <code>POST /auth/login</code> → JWT injecté dans les appels
+              suivants.
+            </td>
+            <td><span class="tag b">REST</span></td>
+          </tr>
+          <tr>
+            <td><strong>3</strong></td>
+            <td>Configurer Kong</td>
+            <td>
+              Créer un service vers <code>limit-exceeded</code> + une route via
+              <code>POST /gateway/services</code> et <code>… /routes</code>.
+              Vérifier sur Admin API Kong.
+            </td>
+            <td><span class="tag b">REST</span></td>
+          </tr>
+          <tr>
+            <td><strong>4</strong></td>
+            <td>Générer du trafic</td>
+            <td>
+              Appeler la route Kong proxifiée plusieurs fois ; Prometheus voit
+              monter <code>kong_http_status</code>.
+            </td>
+            <td><span class="tag n">PromQL</span></td>
+          </tr>
+          <tr>
+            <td><strong>5</strong></td>
+            <td>Créer une règle d'anomalie</td>
+            <td>
+              <code>POST /monitoring/rules</code> avec type
+              <code>ERROR_RATE</code> seuil 0.5 et fenêtre <code>1m</code>.
+              Lancer <code>POST /monitoring/check</code>.
+            </td>
+            <td><span class="tag v">GraphQL</span></td>
+          </tr>
+          <tr>
+            <td><strong>6</strong></td>
+            <td>Incident automatique</td>
+            <td>
+              La règle se déclenche, un incident est créé ; un client connecté à
+              <code>SSE /incidents/sse</code> le voit en direct.
+            </td>
+            <td><span class="tag a">SSE</span></td>
+          </tr>
+          <tr>
+            <td><strong>7</strong></td>
+            <td>Collaboration</td>
+            <td>
+              Deux clients rejoignent <code>/incident-room</code> namespace,
+              échangent un message, voient la présence, puis acquittent et
+              résolvent l'incident.
+            </td>
+            <td><span class="tag r">WebSocket</span></td>
+          </tr>
+          <tr>
+            <td><strong>8</strong></td>
+            <td>Notification externe</td>
+            <td>
+              Un webhook Slack configuré (<code>POST /webhooks</code>) reçoit le
+              payload <code>INCIDENT_CREATED</code> ; la delivery est listée par
+              <code>GET /webhook-deliveries</code>.
+            </td>
+            <td><span class="tag g">Webhook</span></td>
+          </tr>
+          <tr>
+            <td><strong>9</strong></td>
+            <td>Inbound Messenger (bonus)</td>
+            <td>
+              Meta vérifie le callback (<code>hub.challenge</code>) ; un message
+              Facebook arrive dans <code>GET /messenger/events</code>.
+            </td>
+            <td><span class="tag b">REST</span></td>
+          </tr>
+        </tbody>
+      </table>
 
-<div class="box ok">
-<h4>Livrables présentés</h4>
-<p class="small"><strong>Code &amp; infra :</strong> dépôt GitHub, <code>docker-compose.yml</code>
-auto-suffisant, scripts npm (<code>npm run docker:up</code>, <code>generate:incident-room</code>,
-<code>generate:kong-client</code>). &nbsp;<strong>Documentation :</strong> README, fichiers
-<code>sentinel-core/docs/*.md</code> par module, <code>test_sentinel_app.http.example</code>
-comme collection de requêtes. &nbsp;<strong>Démonstration :</strong> scénario ci-dessus
-rejouable à la demande.</p>
-</div>
-</section>
+      <div class="box ok">
+        <h4>Livrables présentés</h4>
+        <p class="small">
+          <strong>Code &amp; infra :</strong> dépôt GitHub,
+          <code>docker-compose.yml</code> auto-suffisant, scripts npm (<code
+            >npm run docker:up</code
+          >, <code>generate:incident-room</code>,
+          <code>generate:kong-client</code>). &nbsp;<strong
+            >Documentation :</strong
+          >
+          README, fichiers <code>gong-core/docs/*.md</code> par module,
+          <code>test_sentinel_app.http.example</code> comme collection de
+          requêtes. &nbsp;<strong>Démonstration :</strong> scénario ci-dessus
+          rejouable à la demande.
+        </p>
+      </div>
+    </section>
 
-<footer class="end">
-Sentinel Gateway — Présentation du projet · Version 2.0 · 29 mai 2026 · Document de
-référence aligné sur le code de <code>sentinel-core</code>.
-</footer>
+    <footer class="end">
+      Gong Gateway — Présentation du projet · Version 2.0 · 29 mai 2026 ·
+      Document de référence aligné sur le code de <code>gong-core</code>.
+    </footer>
 
-<script>
-  mermaid.initialize({
-    startOnLoad:true,
-    theme:'base',
-    themeVariables:{
-      primaryColor:'#e3eef3', primaryBorderColor:'#2c7da0', primaryTextColor:'#0d2b45',
-      lineColor:'#5b6b7d', fontFamily:'Segoe UI, Roboto, sans-serif', fontSize:'13px',
-      secondaryColor:'#f1f5f9', tertiaryColor:'#f7fafc',
-      clusterBkg:'#f7fafc', clusterBorder:'#d4dde6',
-      noteBkgColor:'#fdf7ec', noteBorderColor:'#b9770e',
-      actorBkg:'#e3eef3', actorBorder:'#2c7da0', actorTextColor:'#0d2b45',
-      actorLineColor:'#5b6b7d', signalTextColor:'#0d2b45',
-      cScale0:'#e3eef3', cScale1:'#f1f5f9',
-      'tertiaryTextColor':'#0d2b45', 'tertiaryBorderColor':'#2c7da0',
-      'background':'#fff', 'mainBkg':'#e3eef3', 'secondBkg':'#f1f5f9'
-    },
-    htmlLabels:true,
-    flowchart:{curve:'basis',htmlLabels:true,nodeSpacing:42,rankSpacing:54},
-    sequence:{useMaxWidth:true,wrap:true,actorMargin:55},
-    er:{useMaxWidth:true}
-  });
-</script>
-</body>
+    <script>
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        themeVariables: {
+          primaryColor: "#e3eef3",
+          primaryBorderColor: "#2c7da0",
+          primaryTextColor: "#0d2b45",
+          lineColor: "#5b6b7d",
+          fontFamily: "Segoe UI, Roboto, sans-serif",
+          fontSize: "13px",
+          secondaryColor: "#f1f5f9",
+          tertiaryColor: "#f7fafc",
+          clusterBkg: "#f7fafc",
+          clusterBorder: "#d4dde6",
+          noteBkgColor: "#fdf7ec",
+          noteBorderColor: "#b9770e",
+          actorBkg: "#e3eef3",
+          actorBorder: "#2c7da0",
+          actorTextColor: "#0d2b45",
+          actorLineColor: "#5b6b7d",
+          signalTextColor: "#0d2b45",
+          cScale0: "#e3eef3",
+          cScale1: "#f1f5f9",
+          tertiaryTextColor: "#0d2b45",
+          tertiaryBorderColor: "#2c7da0",
+          background: "#fff",
+          mainBkg: "#e3eef3",
+          secondBkg: "#f1f5f9",
+        },
+        htmlLabels: true,
+        flowchart: {
+          curve: "basis",
+          htmlLabels: true,
+          nodeSpacing: 42,
+          rankSpacing: 54,
+        },
+        sequence: { useMaxWidth: true, wrap: true, actorMargin: 55 },
+        er: { useMaxWidth: true },
+      });
+    </script>
+  </body>
 </html>

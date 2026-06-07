@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`WebhookService` est la facade de notification sortante de Sentinel Gateway.
+`WebhookService` est la facade de notification sortante de Gong Gateway.
 Il centralise la configuration des webhooks, l'emission des evenements internes
 vers des URLs externes, et l'historique des tentatives d'envoi.
 
@@ -82,7 +82,7 @@ pas `provider` continuent donc de fonctionner, notamment avec webhook.site.
 
 ## Payload Sortant GENERIC
 
-Pour chaque webhook `GENERIC`, Sentinel envoie :
+Pour chaque webhook `GENERIC`, Gong envoie :
 
 ```json
 {
@@ -101,8 +101,8 @@ Headers ajoutes :
 
 ```text
 Content-Type: application/json
-X-Sentinel-Event: INCIDENT_CREATED
-X-Sentinel-Signature: sha256=<hmac>   # seulement si un secret est configure
+X-Gong-Event: INCIDENT_CREATED
+X-Gong-Signature: sha256=<hmac>   # seulement si un secret est configure
 ```
 
 ## Discord Provider
@@ -115,7 +115,7 @@ Create Discord webhook config :
 
 ```json
 {
-  "name": "Discord Sentinel Alerts",
+  "name": "Discord Gong Alerts",
   "provider": "DISCORD",
   "url": "https://discord.com/api/webhooks/xxx/yyy",
   "eventTypes": ["INCIDENT_CREATED", "FALLBACK_ACTIVATED", "BUDGET_WARNING"],
@@ -189,7 +189,7 @@ Create Slack webhook config :
 
 ```json
 {
-  "name": "Slack Sentinel Alerts",
+  "name": "Slack Gong Alerts",
   "provider": "SLACK",
   "url": "https://hooks.slack.com/services/xxx/yyy/zzz",
   "eventTypes": ["INCIDENT_CREATED", "FALLBACK_ACTIVATED", "BUDGET_WARNING"],
@@ -249,7 +249,7 @@ La generation du resume Slack prend, par ordre de priorite :
 L'URL Slack Incoming Webhook doit etre gardee secrete : elle donne le droit de
 poster dans le channel configure.
 
-Les reponses publiques de l'API ne renvoient pas l'URL Slack brute. Sentinel
+Les reponses publiques de l'API ne renvoient pas l'URL Slack brute. Gong
 garde l'URL complete en memoire pour envoyer les notifications, mais retourne
 une valeur masquee :
 
@@ -387,7 +387,7 @@ Les endpoints de gestion admin sont proteges en V1 par une cle temporaire dans
 le header :
 
 ```http
-X-Sentinel-Admin-Key: <WEBHOOK_ADMIN_KEY>
+X-Gong-Admin-Key: <WEBHOOK_ADMIN_KEY>
 ```
 
 La valeur attendue vient de la variable d'environnement `WEBHOOK_ADMIN_KEY`.
@@ -400,7 +400,7 @@ contrat interne pour les modules producteurs.
 ```http
 POST /webhooks
 Content-Type: application/json
-X-Sentinel-Admin-Key: <WEBHOOK_ADMIN_KEY>
+X-Gong-Admin-Key: <WEBHOOK_ADMIN_KEY>
 ```
 
 Request :
@@ -443,7 +443,7 @@ uniquement `hasSecret`.
 GET /webhooks
 GET /webhooks?isActive=true
 GET /webhooks?eventType=INCIDENT_CREATED
-X-Sentinel-Admin-Key: <WEBHOOK_ADMIN_KEY>
+X-Gong-Admin-Key: <WEBHOOK_ADMIN_KEY>
 ```
 
 Response :
@@ -472,7 +472,7 @@ Response :
 ```http
 PATCH /webhooks/wh_001
 Content-Type: application/json
-X-Sentinel-Admin-Key: <WEBHOOK_ADMIN_KEY>
+X-Gong-Admin-Key: <WEBHOOK_ADMIN_KEY>
 ```
 
 ```json
@@ -490,13 +490,13 @@ une desactivation logique en mettant `isActive = false`.
 ```http
 POST /webhooks/wh_001/test
 Content-Type: application/json
-X-Sentinel-Admin-Key: <WEBHOOK_ADMIN_KEY>
+X-Gong-Admin-Key: <WEBHOOK_ADMIN_KEY>
 ```
 
 ```json
 {
   "payload": {
-    "message": "Test depuis Sentinel Gateway"
+    "message": "Test depuis Gong Gateway"
   }
 }
 ```
@@ -533,7 +533,7 @@ GET /webhook-deliveries
 GET /webhook-deliveries?status=FAILED
 GET /webhook-deliveries?eventType=INCIDENT_CREATED
 GET /webhook-deliveries?webhookId=wh_001
-X-Sentinel-Admin-Key: <WEBHOOK_ADMIN_KEY>
+X-Gong-Admin-Key: <WEBHOOK_ADMIN_KEY>
 ```
 
 Statuts possibles :
@@ -550,11 +550,11 @@ les tentatives pendant la requete et enregistre directement `SUCCESS` ou
 
 ## HMAC
 
-Si un webhook possede un `secret`, Sentinel signe le corps JSON sortant avec
+Si un webhook possede un `secret`, Gong signe le corps JSON sortant avec
 HMAC SHA-256 :
 
 ```text
-X-Sentinel-Signature: sha256=<hex digest>
+X-Gong-Signature: sha256=<hex digest>
 ```
 
 Le recepteur peut recalculer la signature avec le meme secret et comparer le
@@ -582,7 +582,7 @@ version pourra deleguer les retries a une queue.
 - Pas encore de DB applicative.
 - Pas encore d'ORM TypeORM/Prisma.
 - Pas encore d'AuthModule/JWT complet avec utilisateurs et roles.
-- Endpoints admin proteges provisoirement par `X-Sentinel-Admin-Key`.
+- Endpoints admin proteges provisoirement par `X-Gong-Admin-Key`.
 - Pas encore d'EventBus.
 - Pas encore de queue asynchrone pour les retries.
 - Pas encore d'integration directe avec `IncidentModule`, `AdminModule` ou
@@ -590,7 +590,7 @@ version pourra deleguer les retries a une queue.
 
 ## Commandes De Verification
 
-Depuis `sentinel-core/` :
+Depuis `gong-core/` :
 
 ```bash
 npm test -- --runInBand

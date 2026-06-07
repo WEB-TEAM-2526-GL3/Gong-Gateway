@@ -15,7 +15,7 @@ It is separate from `WebhookService` outbound notifications.
 `/messenger/webhook` is inbound:
 
 ```text
-Meta Messenger -> Sentinel Gateway
+Meta Messenger -> Gong Gateway
 ```
 
 It is used by Meta to verify the callback URL and deliver page messaging events.
@@ -24,10 +24,10 @@ It also lets the team discover a user's PSID from `sender.id`.
 `/webhooks/emit` is outbound:
 
 ```text
-Sentinel Gateway -> Slack / Discord / webhook.site / future Messenger provider
+Gong Gateway -> Slack / Discord / webhook.site / future Messenger provider
 ```
 
-Other Sentinel modules should continue to use `/webhooks/emit` for outgoing
+Other Gong modules should continue to use `/webhooks/emit` for outgoing
 notifications. The Messenger inbound callback is not a replacement for it.
 
 ## Environment
@@ -79,7 +79,7 @@ Meta calls:
 GET /messenger/webhook?hub.mode=subscribe&hub.verify_token=sentinel_messenger_verify_token&hub.challenge=123456
 ```
 
-If the token matches `process.env.MESSENGER_VERIFY_TOKEN`, Sentinel returns
+If the token matches `process.env.MESSENGER_VERIFY_TOKEN`, Gong returns
 exactly:
 
 ```text
@@ -88,7 +88,7 @@ exactly:
 
 The response is plain text, not JSON.
 
-If the token is invalid, Sentinel returns `403`.
+If the token is invalid, Gong returns `403`.
 
 ## Incoming Events
 
@@ -124,7 +124,7 @@ Example:
 }
 ```
 
-Sentinel stores, in memory:
+Gong stores, in memory:
 
 ```text
 senderId
@@ -182,7 +182,7 @@ Target configuration shape for that future work:
 
 ```json
 {
-  "name": "Messenger Sentinel Alerts",
+  "name": "Messenger Gong Alerts",
   "provider": "MESSENGER",
   "eventTypes": ["INCIDENT_CREATED"],
   "config": {

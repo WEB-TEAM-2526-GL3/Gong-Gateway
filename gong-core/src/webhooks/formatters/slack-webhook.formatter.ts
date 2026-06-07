@@ -71,7 +71,7 @@ export class SlackWebhookFormatter implements WebhookPayloadFormatter {
     try {
       return JSON.stringify(payload).slice(0, 300);
     } catch {
-      return 'Sentinel Gateway event';
+      return 'Gong Gateway event';
     }
   }
 

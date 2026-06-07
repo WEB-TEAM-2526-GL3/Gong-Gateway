@@ -11,7 +11,7 @@ import { MetricsModule } from '../metrics/metrics.module';
 import { MonitoringModule } from '../monitoring/monitoring.module';
 import { UsersModule } from '../users/users.module';
 import { WebhooksModule } from '../webhooks/webhooks.module';
-import { SentinelGraphqlResolver } from './sentinel-graphql.resolver';
+import { SentinelGraphqlResolver } from './gong-graphql.resolver';
 import { GqlJwtAuthGuard } from './gql-jwt-auth.guard';
 
 @Module({

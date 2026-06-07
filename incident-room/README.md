@@ -16,8 +16,8 @@ Override it with `VITE_SENTINEL_API_URL`.
 ## Backend Needed
 
 ```bash
-docker compose up -d sentinel-database
-cd sentinel-core
+docker compose up -d gong-database
+cd gong-core
 npm run start:dev
 ```
 

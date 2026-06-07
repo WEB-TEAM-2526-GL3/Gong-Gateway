@@ -1,5 +1,5 @@
 #just replace the api keys for groq and open-router
-@sentinel = http://localhost:3000
+@gong = http://localhost:3000
 @kongProxy = http://localhost:8000
 
 
@@ -10,12 +10,12 @@
 
 @ceoSecret = ceo_ceo
 
-@adminEmail = admin@sentinel.com
-@adminFullName = Sentinel Admin
+@adminEmail = admin@gong.com
+@adminFullName = Gong Admin
 @adminPassword = admin123
 
-@secondAdminEmail = second.admin@sentinel.com
-@secondAdminFullName = Second Sentinel Admin
+@secondAdminEmail = second.admin@gong.com
+@secondAdminFullName = Second Gong Admin
 @secondAdminPassword = admin456
 
 
@@ -28,7 +28,7 @@
 ### 0.1) Register first admin
 ### Run this once. If the user already exists, skip this and run login.
 # @name registerMainAdmin
-POST {{sentinel}}/auth/register
+POST {{gong}}/auth/register
 Content-Type: application/json
 
 {
@@ -42,7 +42,7 @@ Content-Type: application/json
 
 ### 0.2) Login main admin
 # @name loginMainAdmin
-POST {{sentinel}}/auth/login
+POST {{gong}}/auth/login
 Content-Type: application/json
 
 {
@@ -64,8 +64,8 @@ Content-Type: application/json
 @groqKey = *********
 
 
-### 1) Create OpenRouter service through Sentinel gateway controller
-POST {{sentinel}}/gateway/services
+### 1) Create OpenRouter service through Gong gateway controller
+POST {{gong}}/gateway/services
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 Content-Type: application/json
 
@@ -76,7 +76,7 @@ Content-Type: application/json
 
 
 ### 1.1) Add OpenRouter API key to the service
-POST {{sentinel}}/gateway/services/{{openrouterService}}/api-key
+POST {{gong}}/gateway/services/{{openrouterService}}/api-key
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 Content-Type: application/json
 
@@ -85,8 +85,8 @@ Content-Type: application/json
 }
 
 
-### 2) Create OpenRouter route through Sentinel gateway controller
-POST {{sentinel}}/gateway/services/{{openrouterService}}/routes
+### 2) Create OpenRouter route through Gong gateway controller
+POST {{gong}}/gateway/services/{{openrouterService}}/routes
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 Content-Type: application/json
 
@@ -98,8 +98,8 @@ Content-Type: application/json
 }
 
 
-### 3) Create Groq service through Sentinel gateway controller
-POST {{sentinel}}/gateway/services
+### 3) Create Groq service through Gong gateway controller
+POST {{gong}}/gateway/services
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 Content-Type: application/json
 
@@ -110,7 +110,7 @@ Content-Type: application/json
 
 
 ### 3.1) Add Groq API key to the service
-POST {{sentinel}}/gateway/services/{{groqService}}/api-key
+POST {{gong}}/gateway/services/{{groqService}}/api-key
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 Content-Type: application/json
 
@@ -119,8 +119,8 @@ Content-Type: application/json
 }
 
 
-### 4) Create Groq route through Sentinel gateway controller
-POST {{sentinel}}/gateway/services/{{groqService}}/routes
+### 4) Create Groq route through Gong gateway controller
+POST {{gong}}/gateway/services/{{groqService}}/routes
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 Content-Type: application/json
 
@@ -132,13 +132,13 @@ Content-Type: application/json
 }
 
 
-### 5) Verify services through Sentinel gateway controller
-GET {{sentinel}}/gateway/services
+### 5) Verify services through Gong gateway controller
+GET {{gong}}/gateway/services
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 
 
-### 6) Verify routes through Sentinel gateway controller
-GET {{sentinel}}/gateway/routes
+### 6) Verify routes through Gong gateway controller
+GET {{gong}}/gateway/routes
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 
 
@@ -153,7 +153,7 @@ Content-Type: application/json
   "messages": [
     {
       "role": "user",
-      "content": "Say hello from Sentinel Gateway through OpenRouter."
+      "content": "Say hello from Gong Gateway through OpenRouter."
     }
   ]
 }
@@ -170,14 +170,14 @@ Content-Type: application/json
   "messages": [
     {
       "role": "user",
-      "content": "Say hello from Sentinel Gateway through Groq."
+      "content": "Say hello from Gong Gateway through Groq."
     }
   ]
 }
 
 
-### 9) Optional: update OpenRouter service URL through Sentinel gateway controller
-PATCH {{sentinel}}/gateway/services/{{openrouterService}}
+### 9) Optional: update OpenRouter service URL through Gong gateway controller
+PATCH {{gong}}/gateway/services/{{openrouterService}}
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 Content-Type: application/json
 
@@ -186,8 +186,8 @@ Content-Type: application/json
 }
 
 
-### 10) Optional: update Groq service URL through Sentinel gateway controller
-PATCH {{sentinel}}/gateway/services/{{groqService}}
+### 10) Optional: update Groq service URL through Gong gateway controller
+PATCH {{gong}}/gateway/services/{{groqService}}
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 Content-Type: application/json
 
@@ -279,21 +279,21 @@ Content-Type: application/json
 ### DELETE TESTS
 ### ============================================================
 
-### 17) Delete OpenRouter route through Sentinel gateway controller
-DELETE {{sentinel}}/gateway/routes/{{openrouterRoute}}
+### 17) Delete OpenRouter route through Gong gateway controller
+DELETE {{gong}}/gateway/routes/{{openrouterRoute}}
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 
 
-### 18) Delete Groq route through Sentinel gateway controller
-DELETE {{sentinel}}/gateway/routes/{{groqRoute}}
+### 18) Delete Groq route through Gong gateway controller
+DELETE {{gong}}/gateway/routes/{{groqRoute}}
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 
 
-### 19) Delete OpenRouter service through Sentinel gateway controller
-DELETE {{sentinel}}/gateway/services/{{openrouterService}}
+### 19) Delete OpenRouter service through Gong gateway controller
+DELETE {{gong}}/gateway/services/{{openrouterService}}
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}
 
 
-### 20) Delete Groq service through Sentinel gateway controller
-DELETE {{sentinel}}/gateway/services/{{groqService}}
+### 20) Delete Groq service through Gong gateway controller
+DELETE {{gong}}/gateway/services/{{groqService}}
 Authorization: Bearer {{loginMainAdmin.response.body.$.accessToken}}

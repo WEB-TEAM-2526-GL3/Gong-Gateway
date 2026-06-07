@@ -26,4 +26,4 @@ tmp/
 
 test_sentinel_app.http
 
-sentinel-core/public/incident-room/
+gong-core/public/incident-room/

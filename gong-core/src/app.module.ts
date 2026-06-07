@@ -11,7 +11,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { IncidentsModule } from './incidents/incidents.module';
-import { SentinelGraphqlModule } from './graphql/sentinel-graphql.module';
+import { SentinelGraphqlModule } from './graphql/gong-graphql.module';
 
 @Module({
   imports: [
@@ -25,8 +25,8 @@ import { SentinelGraphqlModule } from './graphql/sentinel-graphql.module';
         type: 'postgres',
         host: configService.get<string>('DB_HOST', 'localhost'),
         port: Number(configService.get<string>('DB_PORT', '5433')),
-        username: configService.get<string>('DB_USERNAME', 'sentinel'),
-        password: configService.get<string>('DB_PASSWORD', 'sentinel'),
+        username: configService.get<string>('DB_USERNAME', 'gong'),
+        password: configService.get<string>('DB_PASSWORD', 'gong'),
         database: configService.get<string>('DB_DATABASE', 'sentinel_gateway'),
         autoLoadEntities: true,
         synchronize: true,

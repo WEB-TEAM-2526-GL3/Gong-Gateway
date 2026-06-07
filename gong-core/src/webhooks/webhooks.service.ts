@@ -118,7 +118,7 @@ export class WebhooksService {
       WebhookEventType.ADMIN_ACTION,
       'WebhookService',
       body.payload ?? {
-        message: 'Sentinel Gateway webhook test',
+        message: 'Gong Gateway webhook test',
         webhookId: id,
       },
     );
@@ -241,11 +241,11 @@ export class WebhooksService {
   ): Record<string, string> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'X-Sentinel-Event': eventType,
+      'X-Gong-Event': eventType,
     };
 
     if (webhook.secret) {
-      headers['X-Sentinel-Signature'] = this.signBody(body, webhook.secret);
+      headers['X-Gong-Signature'] = this.signBody(body, webhook.secret);
     }
 
     return headers;

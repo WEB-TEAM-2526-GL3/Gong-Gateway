@@ -205,12 +205,12 @@ function renderLogin() {
   app.innerHTML = `
     <main class="auth-page">
       <section class="auth-card">
-        <p class="eyebrow">Sentinel Gateway</p>
+        <p class="eyebrow">Gong Gateway</p>
         <h1>Unified Control Plane</h1>
         <p class="subtitle">Sign in to manage gateway routes, incidents, monitoring, webhooks, and live metrics.</p>
 
         <form id="login-form">
-          <label>Email<input id="email" type="email" placeholder="admin@sentinel.com" required /></label>
+          <label>Email<input id="email" type="email" placeholder="admin@gong.com" required /></label>
           <label>Password<input id="password" type="password" placeholder="Password" required /></label>
           <p id="error" class="error" hidden></p>
           <button type="submit">Login</button>
@@ -245,13 +245,13 @@ function renderRegister() {
   app.innerHTML = `
     <main class="auth-page">
       <section class="auth-card">
-        <p class="eyebrow">Sentinel Gateway</p>
+        <p class="eyebrow">Gong Gateway</p>
         <h1>Create Admin</h1>
         <p class="subtitle">CEO secret is required for admin registration.</p>
 
         <form id="register-form">
-          <label>Full name<input id="fullName" type="text" placeholder="Sentinel Admin" required /></label>
-          <label>Email<input id="email" type="email" placeholder="admin@sentinel.com" required /></label>
+          <label>Full name<input id="fullName" type="text" placeholder="Gong Admin" required /></label>
+          <label>Email<input id="email" type="email" placeholder="admin@gong.com" required /></label>
           <label>Password<input id="password" type="password" placeholder="Minimum 6 characters" required minlength="6" /></label>
           <label>CEO secret<input id="ceoSecret" type="password" required /></label>
           <p id="error" class="error" hidden></p>
@@ -296,7 +296,7 @@ async function renderDashboard() {
         <div class="brand">
           <span class="brand-mark">S</span>
           <div>
-            <strong>Sentinel</strong>
+            <strong>Gong</strong>
             <small>Gateway</small>
           </div>
         </div>

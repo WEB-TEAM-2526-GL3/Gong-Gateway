@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { timingSafeEqual } from 'node:crypto';
 
-const ADMIN_KEY_HEADER = 'x-sentinel-admin-key';
+const ADMIN_KEY_HEADER = 'x-gong-admin-key';
 
 interface HeaderReadableRequest {
   headers: Record<string, string | string[] | undefined>;

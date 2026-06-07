@@ -3,7 +3,15 @@ import {
   NotFoundException,
   UseGuards,
 } from '@nestjs/common';
-import { Args, Context, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Context,
+  ID,
+  Int,
+  Mutation,
+  Query,
+  Resolver,
+} from '@nestjs/graphql';
 import type { Request } from 'express';
 
 import { AuthService } from '../auth/auth.service';
@@ -15,9 +23,15 @@ import type { IncidentLogEntity } from '../incidents/entities/incident-log.entit
 import type { IncidentEntity } from '../incidents/entities/incident.entity';
 import { MessengerWebhookService } from '../messenger/messenger-webhook.service';
 import { MetricsService } from '../metrics/metrics.service';
-import type { GatewayMetrics, MetricsScope } from '../metrics/types/metrics.types';
+import type {
+  GatewayMetrics,
+  MetricsScope,
+} from '../metrics/types/metrics.types';
 import { MonitoringService } from '../monitoring/monitoring.service';
-import type { CheckResult, MonitoringStatusReport } from '../monitoring/interfaces/check-result.interface';
+import type {
+  CheckResult,
+  MonitoringStatusReport,
+} from '../monitoring/interfaces/check-result.interface';
 import type { MonitoringRuleEntity } from '../monitoring/entities/monitoring-rule.entity';
 import { UsersService } from '../users/users.service';
 import type { UserEntity } from '../users/entities/user.entity';
@@ -71,7 +85,7 @@ import {
   WebhookDeliveryGql,
   WebhookEmitResultGql,
   WebhookGql,
-} from './sentinel-graphql.types';
+} from './gong-graphql.types';
 
 type GqlRequest = Request & { user: AuthenticatedUser };
 type GqlContext = { req: GqlRequest };
@@ -93,7 +107,7 @@ export class SentinelGraphqlResolver {
 
   @Query(() => String)
   graphqlHealth(): string {
-    return 'Sentinel GraphQL is ready';
+    return 'Gong GraphQL is ready';
   }
 
   @Mutation(() => AuthPayloadGql)
@@ -188,7 +202,9 @@ export class SentinelGraphqlResolver {
   async createGatewayService(
     @Args('input') input: GatewayServiceInput,
   ): Promise<GatewayServiceGql> {
-    return this.mapGatewayService(await this.gatewayService.createService(input));
+    return this.mapGatewayService(
+      await this.gatewayService.createService(input),
+    );
   }
 
   @UseGuards(GqlJwtAuthGuard)
@@ -538,9 +554,7 @@ export class SentinelGraphqlResolver {
 
   @UseGuards(GqlJwtAuthGuard)
   @Mutation(() => WebhookGql)
-  deactivateWebhook(
-    @Args('id', { type: () => ID }) id: string,
-  ): WebhookGql {
+  deactivateWebhook(@Args('id', { type: () => ID }) id: string): WebhookGql {
     return this.mapWebhook(this.webhooksService.deactivateWebhook(id));
   }
 
@@ -580,7 +594,9 @@ export class SentinelGraphqlResolver {
       .listDeliveries({
         webhookId,
         eventType,
-        status: status as Parameters<WebhooksService['listDeliveries']>[0]['status'],
+        status: status as Parameters<
+          WebhooksService['listDeliveries']
+        >[0]['status'],
       })
       .map((delivery) => this.mapWebhookDelivery(delivery));
   }
@@ -637,7 +653,8 @@ export class SentinelGraphqlResolver {
       hosts: this.getStringArray(route, 'hosts'),
       methods: this.getStringArray(route, 'methods'),
       stripPath:
-        this.getBoolean(route, 'stripPath') ?? this.getBoolean(route, 'strip_path'),
+        this.getBoolean(route, 'stripPath') ??
+        this.getBoolean(route, 'strip_path'),
       tags: this.getStringArray(route, 'tags'),
     };
   }
