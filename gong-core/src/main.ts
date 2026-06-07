@@ -11,7 +11,7 @@ async function bootstrap() {
 
   app.useStaticAssets(join(process.cwd(), 'public'));
   app.enableCors({
-    origin: process.env.SENTINEL_CORS_ORIGIN ?? 'http://localhost:5173',
+    origin: process.env.GONG_CORS_ORIGIN ?? 'http://localhost:5173',
   });
   app.useGlobalPipes(
     new ValidationPipe({

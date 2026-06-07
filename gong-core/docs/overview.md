@@ -58,7 +58,7 @@
 
 ### GraphQL (`/graphql`)
 
-One resolver (`SentinelGraphqlResolver`) wrapping **all** services:
+One resolver (`GongGraphqlResolver`) wrapping **all** services:
 
 **Queries:** `graphqlHealth`, `me`, `admins`, `dashboardOverview` (open incidents + services + monitoring status), `gatewayServices`, `gatewayService(id)`, `gatewayRoutes`, `gatewayRoute(id)`, `gatewayConsumers`, `gatewayConsumer(id)`, `incidents(status?)`, `incident(id)`, `monitoringRules`, `monitoringRule(id)`, `monitoringStatus`, `gatewayMetrics(scope?, range?)`, `latestGatewayMetrics(scope?)`, `serviceHealth(serviceId)`, `webhooks`, `webhook(id)`, `webhookEventTypes`, `webhookDeliveries`, `messengerEvents`, `messengerRecipients`
 

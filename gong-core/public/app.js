@@ -1,6 +1,6 @@
 const app = document.getElementById('app');
 
-const TOKEN_KEY = 'sentinel_token';
+const TOKEN_KEY = 'gong_token';
 const state = {
   currentView: 'overview',
   me: null,

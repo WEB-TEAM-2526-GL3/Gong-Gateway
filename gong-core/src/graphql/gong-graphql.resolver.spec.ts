@@ -31,7 +31,7 @@ import { WebhookDeliveryStatus } from '../webhooks/types/webhook-delivery-status
 import { WebhookEventType } from '../webhooks/types/webhook-event-type.enum';
 import { WebhookProvider } from '../webhooks/types/webhook-provider.enum';
 import { WebhooksService } from '../webhooks/webhooks.service';
-import { SentinelGraphqlResolver } from './gong-graphql.resolver';
+import { GongGraphqlResolver } from './gong-graphql.resolver';
 
 type MockedServices = {
   authService: {
@@ -73,13 +73,13 @@ type MockedServices = {
   };
 };
 
-describe('SentinelGraphqlResolver', () => {
-  let resolver: SentinelGraphqlResolver;
+describe('GongGraphqlResolver', () => {
+  let resolver: GongGraphqlResolver;
   let services: MockedServices;
 
   beforeEach(() => {
     services = createServices();
-    resolver = new SentinelGraphqlResolver(
+    resolver = new GongGraphqlResolver(
       services.authService as unknown as AuthService,
       services.ceoSecretService as unknown as CeoSecretService,
       services.usersService as unknown as UsersService,
@@ -135,7 +135,7 @@ describe('SentinelGraphqlResolver', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [GraphQLSchemaBuilderModule],
       providers: [
-        SentinelGraphqlResolver,
+        GongGraphqlResolver,
         { provide: AuthService, useValue: services.authService },
         { provide: CeoSecretService, useValue: services.ceoSecretService },
         { provide: UsersService, useValue: services.usersService },
@@ -155,7 +155,7 @@ describe('SentinelGraphqlResolver', () => {
     }).compile();
 
     const schemaFactory = moduleRef.get(GraphQLSchemaFactory);
-    const schema = await schemaFactory.create([SentinelGraphqlResolver]);
+    const schema = await schemaFactory.create([GongGraphqlResolver]);
 
     expect(schema.getType('MonitoringRule')).toBeDefined();
     expect(schema.getQueryType()?.getFields().graphqlHealth).toBeDefined();

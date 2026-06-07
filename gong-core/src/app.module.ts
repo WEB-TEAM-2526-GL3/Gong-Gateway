@@ -11,7 +11,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { IncidentsModule } from './incidents/incidents.module';
-import { SentinelGraphqlModule } from './graphql/gong-graphql.module';
+import { GongGraphqlModule } from './graphql/gong-graphql.module';
 
 @Module({
   imports: [
@@ -27,7 +27,7 @@ import { SentinelGraphqlModule } from './graphql/gong-graphql.module';
         port: Number(configService.get<string>('DB_PORT', '5433')),
         username: configService.get<string>('DB_USERNAME', 'gong'),
         password: configService.get<string>('DB_PASSWORD', 'gong'),
-        database: configService.get<string>('DB_DATABASE', 'sentinel_gateway'),
+        database: configService.get<string>('DB_DATABASE', 'gong_gateway'),
         autoLoadEntities: true,
         synchronize: true,
       }),
@@ -41,7 +41,7 @@ import { SentinelGraphqlModule } from './graphql/gong-graphql.module';
     MonitoringModule,
     WebhooksModule,
     MetricsModule,
-    SentinelGraphqlModule,
+    GongGraphqlModule,
   ],
   controllers: [AppController],
   providers: [AppService],

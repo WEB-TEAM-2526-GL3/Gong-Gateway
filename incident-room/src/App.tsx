@@ -43,7 +43,7 @@ interface PresenceAdmin {
 }
 
 const API_URL =
-  import.meta.env.VITE_SENTINEL_API_URL?.replace(/\/$/, '') ??
+  import.meta.env.VITE_GONG_API_URL?.replace(/\/$/, '') ??
   'http://localhost:3000';
 
 const DEMO_SERVICE_ID = '22222222-2222-4222-8222-222222222222';

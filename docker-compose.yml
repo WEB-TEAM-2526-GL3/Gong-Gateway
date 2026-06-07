@@ -1,6 +1,6 @@
 volumes:
   kong_db_data: {}
-  sentinel_db_data: {}
+  gong_db_data: {}
 
 networks:
   kong-net:
@@ -98,11 +98,11 @@ services:
     environment:
       POSTGRES_USER: gong
       POSTGRES_PASSWORD: gong
-      POSTGRES_DB: sentinel_gateway
+      POSTGRES_DB: gong_gateway
     ports:
       - "5433:5432"
     volumes:
-      - sentinel_db_data:/var/lib/postgresql/data
+      - gong_db_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "gong"]
       interval: 5s

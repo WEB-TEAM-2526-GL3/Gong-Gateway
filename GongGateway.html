@@ -924,7 +924,7 @@
 
       <h3>GraphQL</h3>
       <p>
-        Un seul résolveur <code>SentinelGraphqlResolver</code> agrège toute la
+        Un seul résolveur <code>GongGraphqlResolver</code> agrège toute la
         surface métier sous Apollo, protégée par <code>GqlJwtAuthGuard</code>.
         Les opérations principales :
       </p>
@@ -1045,7 +1045,7 @@
               couvrant moi, incidents ouverts, dernier rapport de monitoring et
               services Kong.
             </td>
-            <td>SentinelGraphqlModule</td>
+            <td>GongGraphqlModule</td>
           </tr>
           <tr>
             <td><strong>AC-07</strong></td>
@@ -1361,7 +1361,7 @@ gong-gateway/
             <td>Mémoire</td>
           </tr>
           <tr>
-            <td><code>SentinelGraphqlModule</code></td>
+            <td><code>GongGraphqlModule</code></td>
             <td>
               Schéma Apollo unique exposant gateway, monitoring, incidents,
               métriques, webhooks et messenger.
@@ -1676,7 +1676,7 @@ stateDiagram-v2
       <h2 id="sect-2-9">2.9 — Modèle physique de données</h2>
       <p>
         Quatre tables sont gérées par TypeORM dans la base
-        <code>sentinel_gateway</code> (<code>synchronize: true</code> en dev).
+        <code>gong_gateway</code> (<code>synchronize: true</code> en dev).
         Les autres états (webhooks, deliveries, messenger) vivent en mémoire
         dans la V1.
       </p>
@@ -1807,7 +1807,7 @@ erDiagram
             <td><span class="tag v">GraphQL</span></td>
             <td>Admin → Gong</td>
             <td>
-              Apollo, schéma unique <code>SentinelGraphqlResolver</code> ;
+              Apollo, schéma unique <code>GongGraphqlResolver</code> ;
               <code>dashboardOverview</code> agrégé en une requête.
             </td>
           </tr>
@@ -1979,7 +1979,7 @@ erDiagram
             <td>
               <code>WebhooksModule</code> (Slack / Discord / Generic + HMAC +
               retries), <code>MessengerModule</code> (callback Meta inbound),
-              <code>SentinelGraphqlModule</code> (résolveur unique).
+              <code>GongGraphqlModule</code> (résolveur unique).
             </td>
           </tr>
           <tr>
@@ -2042,7 +2042,7 @@ erDiagram
             <td><strong>Démo de bout en bout</strong></td>
             <td><code>docker compose up</code> + collection HTTP</td>
             <td>
-              <code>test_sentinel_app.http.example</code> sert de script de
+              <code>test_gong_app.http.example</code> sert de script de
               scénario reproductible.
             </td>
           </tr>
@@ -2221,7 +2221,7 @@ erDiagram
             >Documentation :</strong
           >
           README, fichiers <code>gong-core/docs/*.md</code> par module,
-          <code>test_sentinel_app.http.example</code> comme collection de
+          <code>test_gong_app.http.example</code> comme collection de
           requêtes. &nbsp;<strong>Démonstration :</strong> scénario ci-dessus
           rejouable à la demande.
         </p>

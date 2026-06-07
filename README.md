@@ -108,9 +108,9 @@ DB_HOST=localhost
 DB_PORT=5433
 DB_USERNAME=gong
 DB_PASSWORD=gong
-DB_DATABASE=sentinel_gateway
+DB_DATABASE=gong_gateway
 
-SENTINEL_CORS_ORIGIN=http://localhost:5173
+GONG_CORS_ORIGIN=http://localhost:5173
 PROMETHEUS_URL=http://localhost:9090
 JWT_SECRET=change_me
 CEO_SECRET=change_this_ceo_secret

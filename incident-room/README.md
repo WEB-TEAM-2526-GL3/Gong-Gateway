@@ -11,7 +11,7 @@ npm run dev
 ```
 
 Default backend URL is `http://localhost:3000`.
-Override it with `VITE_SENTINEL_API_URL`.
+Override it with `VITE_GONG_API_URL`.
 
 ## Backend Needed
 

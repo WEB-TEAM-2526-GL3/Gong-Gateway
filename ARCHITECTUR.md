@@ -35,7 +35,7 @@ flowchart LR
     KongProxy[Kong Proxy :8000]
     KongAdmin[Kong Admin API :8001]
     Prometheus[Prometheus :9090]
-    SentinelDB[(Gong PostgreSQL :5433)]
+    GongDB[(Gong PostgreSQL :5433)]
     KongDB[(Kong PostgreSQL :5432)]
   end
 
@@ -56,7 +56,7 @@ flowchart LR
   SSE --> Core
   WS --> Core
 
-  Core --> SentinelDB
+  Core --> GongDB
   Core --> KongAdmin
   Core --> Prometheus
   Core --> WebhookTarget
@@ -71,19 +71,19 @@ flowchart LR
 ```mermaid
 flowchart TB
   subgraph Host[Local Machine]
-    SentinelCore["gong-core\nlocalhost:3000"]
+    GongCore["gong-core\nlocalhost:3000"]
     IncidentRoomDev["incident-room dev\nlocalhost:5173"]
     KongProxy["Kong Proxy\nlocalhost:8000"]
     KongAdmin["Kong Admin API\nlocalhost:8001"]
     Prometheus["Prometheus\nlocalhost:9090"]
-    SentinelPostgres["Gong DB\nlocalhost:5433"]
+    GongPostgres["Gong DB\nlocalhost:5433"]
     KongPostgres["Kong DB\nlocalhost:5432"]
   end
 
-  SentinelCore --> SentinelPostgres
-  SentinelCore --> KongAdmin
-  SentinelCore --> Prometheus
-  IncidentRoomDev --> SentinelCore
+  GongCore --> GongPostgres
+  GongCore --> KongAdmin
+  GongCore --> Prometheus
+  IncidentRoomDev --> GongCore
   Prometheus --> KongAdmin
   KongProxy --> KongPostgres
   KongAdmin --> KongPostgres
@@ -100,7 +100,7 @@ flowchart LR
 
   subgraph Backend["gong-core NestJS"]
     AppModule[AppModule]
-    GraphQLModule[SentinelGraphqlModule]
+    GraphQLModule[GongGraphqlModule]
     AuthModule[AuthModule]
     UsersModule[UsersModule]
     GatewayModule[GatewayModule]
@@ -177,7 +177,7 @@ flowchart TB
   Metrics[MetricsModule\nPrometheus polling, cache, SSE]
   Webhooks[WebhooksModule\nwebhook configs, deliveries, formatters]
   Messenger[MessengerModule\nMeta webhook ingestion and event history]
-  GraphQL[SentinelGraphqlModule\nfrontend facade]
+  GraphQL[GongGraphqlModule\nfrontend facade]
 
   GraphQL --> Auth
   GraphQL --> Users
@@ -217,7 +217,7 @@ flowchart LR
   Meta[Messenger Platform]
   TestClient[HTTP Test Client]
 
-  subgraph SentinelCore
+  subgraph GongCore
     GraphQL["/graphql\nApollo GraphQL"]
     AuthRest["/auth/*"]
     GatewayRest["/gateway/*"]
@@ -251,7 +251,7 @@ sequenceDiagram
   participant Dashboard as Unified Dashboard
   participant GraphQL as /graphql
   participant Guard as GqlJwtAuthGuard
-  participant Resolver as SentinelGraphqlResolver
+  participant Resolver as GongGraphqlResolver
   participant Service as Domain Service
   participant DB as PostgreSQL / Kong / Prometheus
 
@@ -550,7 +550,7 @@ Domain services should not own frontend sockets or browser-specific behavior.
 - `MetricsService` owns metrics polling, cache, and backend metric events.
 - `IncidentRoomGateway` owns Socket.IO connections, rooms, and emitted socket messages.
 - `MetricsController` owns the SSE stream boundary.
-- `SentinelGraphqlResolver` owns the GraphQL facade and maps domain objects to GraphQL types.
+- `GongGraphqlResolver` owns the GraphQL facade and maps domain objects to GraphQL types.
 
 ## 15. Request Ownership
 
@@ -560,7 +560,7 @@ flowchart TB
 
   Request --> AuthBoundary{Boundary}
 
-  AuthBoundary -->|GraphQL| Resolver[SentinelGraphqlResolver]
+  AuthBoundary -->|GraphQL| Resolver[GongGraphqlResolver]
   AuthBoundary -->|REST| Controller[Nest Controller]
   AuthBoundary -->|SSE| MetricsController[MetricsController]
   AuthBoundary -->|Socket.IO| Gateway[IncidentRoomGateway]
@@ -592,7 +592,7 @@ flowchart TB
 flowchart LR
   Dashboard[Unified Dashboard]
   GraphQLFetch["fetch('/graphql')"]
-  LocalStorage["localStorage sentinel_token"]
+  LocalStorage["localStorage gong_token"]
   SSE["EventSource('/metrics/sse')"]
   Render[DOM rendering]
 
@@ -624,7 +624,7 @@ Good places to extend the system:
 
 | Need                              | Recommended place                                                        |
 | --------------------------------- | ------------------------------------------------------------------------ |
-| Add a new dashboard read model    | Add a GraphQL query in `SentinelGraphqlResolver`.                        |
+| Add a new dashboard read model    | Add a GraphQL query in `GongGraphqlResolver`.                        |
 | Add a new domain action           | Add service method first, then expose via REST/GraphQL/socket if needed. |
 | Add a new webhook provider        | Add formatter under `webhooks/formatters`.                               |
 | Add a new monitoring rule type    | Extend `MonitoringRuleType` and `MonitoringService`.                     |

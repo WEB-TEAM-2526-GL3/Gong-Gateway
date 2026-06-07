@@ -24,6 +24,6 @@ Thumbs.db
 # Temp
 tmp/
 
-test_sentinel_app.http
+test_gong_app.http
 
 gong-core/public/incident-room/

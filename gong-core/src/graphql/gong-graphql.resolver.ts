@@ -92,7 +92,7 @@ type GqlContext = { req: GqlRequest };
 type UnknownRecord = Record<string, unknown>;
 
 @Resolver()
-export class SentinelGraphqlResolver {
+export class GongGraphqlResolver {
   constructor(
     private readonly authService: AuthService,
     private readonly ceoSecretService: CeoSecretService,

@@ -35,14 +35,14 @@ notifications. The Messenger inbound callback is not a replacement for it.
 Set the verify token before starting NestJS:
 
 ```bash
-MESSENGER_VERIFY_TOKEN=sentinel_messenger_verify_token
+MESSENGER_VERIFY_TOKEN=gong_messenger_verify_token
 ```
 
 There is no `.env.example` file in the repository currently. If one is added
 later, include:
 
 ```bash
-MESSENGER_VERIFY_TOKEN=sentinel_messenger_verify_token
+MESSENGER_VERIFY_TOKEN=gong_messenger_verify_token
 ```
 
 Do not log or expose Messenger tokens. The verify token is only for callback
@@ -76,7 +76,7 @@ messaging_postbacks
 Meta calls:
 
 ```http
-GET /messenger/webhook?hub.mode=subscribe&hub.verify_token=sentinel_messenger_verify_token&hub.challenge=123456
+GET /messenger/webhook?hub.mode=subscribe&hub.verify_token=gong_messenger_verify_token&hub.challenge=123456
 ```
 
 If the token matches `process.env.MESSENGER_VERIFY_TOKEN`, Gong returns
